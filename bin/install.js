@@ -35,6 +35,7 @@ const MCP_SHRINK_PKG = 'caveman-shrink';
 const HOOK_FILES = [
   'package.json',
   'caveman-config.js',
+  'prompt-policy.js',
   'caveman-activate.js',
   'caveman-mode-tracker.js',
   'caveman-stats.js',
@@ -296,6 +297,18 @@ function macAppPresent(name) {
   return candidates.some(p => fs.existsSync(p));
 }
 
+function displayPath(p) {
+  const raw = String(p);
+  if (IS_WIN) {
+    const home = os.homedir();
+    const prefix = home + path.sep;
+    if (raw.toLowerCase().startsWith(prefix.toLowerCase())) {
+      return home + '/' + raw.slice(prefix.length).replace(/\\/g, '/');
+    }
+  }
+  return raw.replace(/\\/g, '/');
+}
+
 function detectMatch(spec) {
   if (!spec) return false;
   for (const clause of spec.split('||')) {
@@ -464,7 +477,7 @@ function installViaSkills(ctx, prov) {
 // (opencode's TUI exposes no plugin-writable badge).
 const OPENCODE_SKILL_DIRS  = ['caveman', 'caveman-commit', 'caveman-review', 'caveman-help', 'caveman-stats', 'caveman-compress', 'cavecrew'];
 const OPENCODE_AGENT_FILES = ['cavecrew-investigator.md', 'cavecrew-builder.md', 'cavecrew-reviewer.md'];
-const OPENCODE_COMMAND_FILES = ['caveman.md', 'caveman-commit.md', 'caveman-review.md', 'caveman-compress.md', 'caveman-stats.md', 'caveman-help.md'];
+const OPENCODE_COMMAND_FILES = ['caveman.md', 'caveman-commit.md', 'caveman-review.md', 'caveman-compress.md', 'caveman-stats.md', 'caveman-help.md', 'caveman-doctor.md', 'caveman-bench.md', 'caveman-config.md'];
 const OPENCODE_PLUGIN_REL = './plugins/caveman/plugin.js';
 const OPENCODE_AGENTS_MD_SENTINEL = 'Respond terse like smart caveman';
 // Marker fence for the opencode AGENTS.md ruleset block. Same convention as
@@ -511,13 +524,13 @@ function installOpencode(ctx) {
   const agentsMd     = path.join(dir, 'AGENTS.md');
 
   if (opts.dryRun) {
-    note(`  would mkdir ${pluginDir}/, ${commandsDir}/, ${agentsDir}/, ${skillsDir}/`);
-    note(`  would copy plugin.js + package.json + caveman-config.cjs into ${pluginDir}/`);
-    note(`  would copy ${OPENCODE_COMMAND_FILES.length} command files into ${commandsDir}/`);
-    note(`  would copy ${OPENCODE_AGENT_FILES.length} cavecrew agents into ${agentsDir}/`);
-    note(`  would copy ${OPENCODE_SKILL_DIRS.length} skill dirs into ${skillsDir}/`);
-    note(`  would patch ${opencodeJson} with "plugin" entry${opts.withMcpShrink ? ' + caveman-shrink MCP' : ''}`);
-    note(`  would write Tier-3 ruleset to ${agentsMd}`);
+    note(`  would mkdir ${displayPath(pluginDir)}/, ${displayPath(commandsDir)}/, ${displayPath(agentsDir)}/, ${displayPath(skillsDir)}/`);
+    note(`  would copy plugin.js + package.json + caveman-config.cjs into ${displayPath(pluginDir)}/`);
+    note(`  would copy ${OPENCODE_COMMAND_FILES.length} command files into ${displayPath(commandsDir)}/`);
+    note(`  would copy ${OPENCODE_AGENT_FILES.length} cavecrew agents into ${displayPath(agentsDir)}/`);
+    note(`  would copy ${OPENCODE_SKILL_DIRS.length} skill dirs into ${displayPath(skillsDir)}/`);
+    note(`  would patch ${displayPath(opencodeJson)} with "plugin" entry${opts.withMcpShrink ? ' + caveman-shrink MCP' : ''}`);
+    note(`  would write Tier-3 ruleset to ${displayPath(agentsMd)}`);
     results.installed.push('opencode');
     process.stdout.write('\n');
     return;
@@ -694,9 +707,9 @@ async function installHooks(ctx) {
   const sourceDir = repoRoot ? path.join(repoRoot, 'src', 'hooks') : null;
 
   if (opts.dryRun) {
-    note(`  would mkdir -p ${hooksDir}`);
-    for (const f of HOOK_FILES) note(`  would install ${path.join(hooksDir, f)}`);
-    note(`  would merge SessionStart + UserPromptSubmit + statusline into ${settingsPath}`);
+    note(`  would mkdir -p ${displayPath(hooksDir)}`);
+    for (const f of HOOK_FILES) note(`  would install ${displayPath(path.join(hooksDir, f))}`);
+    note(`  would merge SessionStart + UserPromptSubmit + statusline into ${displayPath(settingsPath)}`);
     return 'ok';
   }
 

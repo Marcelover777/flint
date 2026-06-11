@@ -118,10 +118,12 @@ Install break? Open agent, say *"Read CLAUDE.md and INSTALL.md, install caveman 
 | `/caveman [lite\|full\|ultra\|wenyan]` | Compress every reply. Levels stick until session end. |
 | `/caveman-commit` | Conventional Commit messages, ≤50 char subject. Why over what. |
 | `/caveman-review` | One-line PR comments: `L42: 🔴 bug: user null. Add guard.` |
-| `/caveman-stats` | Real session token usage + lifetime savings + USD. Tweetable line via `--share`. |
-| `/caveman-compress <file>` | Rewrite memory file (e.g. `CLAUDE.md`) into caveman-speak. Cuts ~46% input tokens every session. Code/URLs/paths byte-preserved. |
-| `caveman-shrink` | MCP middleware. Wraps any MCP server, compresses tool descriptions. [npm](https://www.npmjs.com/package/caveman-shrink). |
-| `cavecrew-*` | Caveman subagents (investigator/builder/reviewer). ~60% fewer tokens than vanilla, main context lasts longer. |
+| `/caveman-stats` | Real session token usage + lifetime savings + Fable 5-aware USD. JSON via `--json`, tweetable line via `--share`. |
+| `/caveman-compress <file>` | Local-first safe memory compression. Code/URLs/paths byte-preserved. LLM compression opt-in via `--llm`. |
+| `/caveman-doctor` | Checks hooks, config, statusline, MCP shrink, pricing, secret scanner, token-count readiness. |
+| `/caveman-bench` | Offline eval/bench report; Fable 5 online path when API key exists. |
+| `caveman-shrink` | MCP middleware. Wraps any MCP server, compresses list descriptions with Content-Length support. [npm](https://www.npmjs.com/package/caveman-shrink). |
+| `cavecrew-*` | Compact subagents (investigator/builder/reviewer). File/line evidence stays, main context lasts longer. |
 
 **Statusline badge** — Claude Code shows `[CAVEMAN] ⛏ 12.4k` (lifetime tokens saved). Updates every `/caveman-stats` run. Set `CAVEMAN_STATUSLINE_SAVINGS=0` to silence.
 
@@ -148,6 +150,18 @@ Real token counts from the Claude API. Average **65% output reduction** across 1
 <!-- BENCHMARK-TABLE-END -->
 
 Raw data and reproduction script: [`benchmarks/`](./benchmarks/). Three-arm eval harness (baseline / terse / skill) lives in [`evals/`](./evals/) — caveman compared against `Answer concisely.` not against verbose default, so the delta is honest.
+
+### Fable 5 optimizer
+
+Caveman now has a Fable 5-aware V1 path:
+
+- micro-inject by default for Claude Code SessionStart, with full skill fallback via config;
+- `/caveman-stats --json` reports input/output/cache tokens and cost estimates for `claude-fable-5`;
+- `/caveman-compress --local-only` runs without network/API; `--llm claude-fable-5` is opt-in;
+- secret scan blocks high-risk files before any LLM call;
+- `caveman-shrink` supports newline JSON and `Content-Length` MCP framing.
+
+LLM compression may send selected prose to Claude API. Fable 5 API traffic can have retention requirements; do not run LLM compression on sensitive documents. Local-only mode stays on machine.
 
 **caveman-compress receipts** (real memory files):
 

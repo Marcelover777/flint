@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "mode": "offline",
+  "snapshots_present": true,
+  "arms": [
+    "baseline",
+    "terse",
+    "caveman-current-full",
+    "fable-micro-full",
+    "fable-adaptive-full",
+    "fable-lite",
+    "fable-ultra",
+    "local-compress-only",
+    "hybrid-compress"
+  ],
+  "prompts": [
+    {
+      "file": "agentic-coding.txt",
+      "approx_tokens": 48,
+      "chars": 192
+    },
+    {
+      "file": "code-review.txt",
+      "approx_tokens": 36,
+      "chars": 141
+    },
+    {
+      "file": "debugging.txt",
+      "approx_tokens": 56,
+      "chars": 222
+    },
+    {
+      "file": "dev-long.txt",
+      "approx_tokens": 55,
+      "chars": 220
+    },
+    {
+      "file": "dev-short.txt",
+      "approx_tokens": 34,
+      "chars": 136
+    },
+    {
+      "file": "en.txt",
+      "approx_tokens": 129,
+      "chars": 516
+    },
+    {
+      "file": "pt-br.txt",
+      "approx_tokens": 76,
+      "chars": 304
+    }
+  ],
+  "recommendation": "Use fable-micro-full as default until online evals prove hybrid/adaptive quality >=4."
+}

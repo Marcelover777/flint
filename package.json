@@ -19,7 +19,9 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node --test tests/installer/*.test.mjs"
+    "test": "node --test tests/installer/*.test.mjs",
+    "test:optimizer": "node --test tests/core/*.test.mjs tests/hooks/*.test.mjs tests/mcp/*.test.mjs tests/commands/*.test.mjs",
+    "test:all": "node --test tests/installer/*.test.mjs tests/core/*.test.mjs tests/hooks/*.test.mjs tests/mcp/*.test.mjs tests/commands/*.test.mjs"
   },
   "files": [
     "bin/",

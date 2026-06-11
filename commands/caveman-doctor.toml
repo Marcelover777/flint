@@ -1,0 +1,2 @@
+description = "Diagnose Caveman hooks, config, pricing, secret scan, MCP shrink, and token-count readiness"
+prompt = "Run `node src/commands/caveman-doctor.js {{args}}` from the repo root. If user passes `--fix-statusline`, explain it mutates Claude Code settings before running."

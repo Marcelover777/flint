@@ -1,0 +1,3 @@
+What is a closure in JavaScript?
+Why does React re-render when props change?
+How do I make a Node CLI exit with code 2 on invalid args?

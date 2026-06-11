@@ -1,0 +1,3 @@
+Explique por que um componente React re-renderiza quando recebe um objeto inline como prop.
+Analise este erro: TypeError: Cannot read properties of undefined (reading 'id'). Diga causa provavel e proximo teste.
+Revise uma mudanca que altera autenticacao JWT. Foque em risco, edge cases e teste faltante.

@@ -1,0 +1,2 @@
+description = "Run Caveman offline/online benchmark report for Fable 5 optimizer"
+prompt = "Run `node src/commands/caveman-bench.js {{args}}` from the repo root. Use `--offline` when no ANTHROPIC_API_KEY exists. Use `--report` to write evals/reports/fable5-YYYY-MM-DD.{json,md}."

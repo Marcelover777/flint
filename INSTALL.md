@@ -117,6 +117,22 @@ Useful flags:
 | `--force` | Re-run even if already installed. |
 | `--uninstall` | Remove everything. See below. |
 
+## Fable 5 optimizer commands
+
+These commands ship with the repo/plugin command stubs:
+
+| Command | What |
+|---|---|
+| `/caveman-stats --json` | Session usage as schema v2 JSON: input/output/cache tokens, Fable 5 pricing, estimated savings. |
+| `/caveman-compress CLAUDE.md --check --local-only` | Safe dry check. No writes, no API. |
+| `/caveman-compress CLAUDE.source.md --out CLAUDE.md --strict` | Source/compressed split for memory files. |
+| `/caveman-compress CLAUDE.md --llm claude-fable-5` | Opt-in LLM compression after local deterministic pass and secret scan. |
+| `/caveman-compress CLAUDE.md --restore` | Restore latest `.caveman/backups/**` or legacy `CLAUDE.original.md`. |
+| `/caveman-doctor --json` | Machine-readable readiness check. |
+| `/caveman-bench --offline --report` | Offline eval report under `evals/reports/`. |
+
+Default compression is local-first. LLM compression is disabled unless explicitly requested by flag or config.
+
 ## Always-on rules
 
 For agents without a hook system (Cursor, Windsurf, Cline, Copilot, and friends), the always-on path is a static rule file. Two ways:
