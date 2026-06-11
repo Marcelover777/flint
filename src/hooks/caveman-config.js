@@ -19,6 +19,50 @@ const VALID_MODES = [
   'commit', 'review', 'compress'
 ];
 
+const DEFAULT_CONFIG = {
+  schema_version: 1,
+  defaultMode: 'full',
+  targetModel: 'claude-fable-5',
+  injection: {
+    strategy: 'adaptive',
+    sessionStart: 'micro',
+    reinforcement: 'adaptive',
+    reinforceFirstNTurns: 2,
+    reinforceEveryNTurns: 6,
+    afterLongOutputTokens: 2500,
+    statuslineNudge: 'once',
+  },
+  compression: {
+    defaultStrategy: 'hybrid',
+    strict: true,
+    localFirst: true,
+    llmEnabled: false,
+    llmModel: 'claude-fable-5',
+    minLocalSavingsToSkipLLM: 0.35,
+    cache: true,
+    sourceSplit: true,
+  },
+  security: {
+    secretScan: true,
+    entropyScan: true,
+    abortOnSecret: true,
+    allowLLMForSensitiveFiles: false,
+  },
+  mcpShrink: {
+    enabled: true,
+    fields: ['description'],
+    topLevelOnly: true,
+    compressNestedSchemas: false,
+    cache: true,
+    framing: 'auto',
+  },
+  stats: {
+    useTokenCountApi: true,
+    fallbackTokenizer: 'chars_approx',
+    historySchema: 2,
+  },
+};
+
 function getConfigDir() {
   if (process.env.XDG_CONFIG_HOME) {
     return path.join(process.env.XDG_CONFIG_HOME, 'caveman');
@@ -36,6 +80,113 @@ function getConfigPath() {
   return path.join(getConfigDir(), 'config.json');
 }
 
+function isPlainObject(value) {
+  return value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function mergeConfig(base, override) {
+  const out = Array.isArray(base) ? [...base] : { ...base };
+  if (!isPlainObject(override)) return out;
+  for (const [key, value] of Object.entries(override)) {
+    if (isPlainObject(value) && isPlainObject(out[key])) {
+      out[key] = mergeConfig(out[key], value);
+    } else if (value !== undefined) {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
+function normalizeMode(mode, fallback = 'full') {
+  if (!mode) return fallback;
+  const raw = String(mode).toLowerCase();
+  if (raw === 'wenyan-full') return 'wenyan';
+  return VALID_MODES.includes(raw) ? raw : fallback;
+}
+
+function normalizeConfig(config) {
+  const out = mergeConfig(DEFAULT_CONFIG, config || {});
+  out.defaultMode = normalizeMode(out.defaultMode, 'full');
+  if (!out.targetModel || typeof out.targetModel !== 'string') out.targetModel = DEFAULT_CONFIG.targetModel;
+  if (!['micro', 'full'].includes(out.injection.sessionStart)) out.injection.sessionStart = DEFAULT_CONFIG.injection.sessionStart;
+  if (!['adaptive', 'always', 'off'].includes(out.injection.reinforcement)) out.injection.reinforcement = DEFAULT_CONFIG.injection.reinforcement;
+  if (!['once', 'always', 'off'].includes(out.injection.statuslineNudge)) out.injection.statuslineNudge = DEFAULT_CONFIG.injection.statuslineNudge;
+  for (const key of ['reinforceFirstNTurns', 'reinforceEveryNTurns', 'afterLongOutputTokens']) {
+    if (!Number.isFinite(Number(out.injection[key])) || Number(out.injection[key]) < 0) {
+      out.injection[key] = DEFAULT_CONFIG.injection[key];
+    } else {
+      out.injection[key] = Number(out.injection[key]);
+    }
+  }
+  if (!Array.isArray(out.mcpShrink.fields) || out.mcpShrink.fields.length === 0) {
+    out.mcpShrink.fields = [...DEFAULT_CONFIG.mcpShrink.fields];
+  }
+  return out;
+}
+
+function readConfigFile() {
+  try {
+    return JSON.parse(fs.readFileSync(getConfigPath(), 'utf8'));
+  } catch (_) {
+    return {};
+  }
+}
+
+function envConfig() {
+  const out = {};
+  if (process.env.CAVEMAN_DEFAULT_MODE) out.defaultMode = process.env.CAVEMAN_DEFAULT_MODE;
+  if (process.env.CAVEMAN_TARGET_MODEL) out.targetModel = process.env.CAVEMAN_TARGET_MODEL;
+  if (process.env.CAVEMAN_INJECTION_SESSION_START) {
+    out.injection = { ...(out.injection || {}), sessionStart: process.env.CAVEMAN_INJECTION_SESSION_START };
+  }
+  if (process.env.CAVEMAN_REINFORCEMENT) {
+    out.injection = { ...(out.injection || {}), reinforcement: process.env.CAVEMAN_REINFORCEMENT };
+  }
+  if (process.env.CAVEMAN_COMPRESSION_LLM_ENABLED) {
+    out.compression = {
+      ...(out.compression || {}),
+      llmEnabled: ['1', 'true', 'yes'].includes(process.env.CAVEMAN_COMPRESSION_LLM_ENABLED.toLowerCase()),
+    };
+  }
+  if (process.env.CAVEMAN_SHRINK_FIELDS) {
+    out.mcpShrink = {
+      ...(out.mcpShrink || {}),
+      fields: process.env.CAVEMAN_SHRINK_FIELDS.split(',').map(s => s.trim()).filter(Boolean),
+    };
+  }
+  if (process.env.CAVEMAN_SHRINK_NESTED_SCHEMA) {
+    out.mcpShrink = {
+      ...(out.mcpShrink || {}),
+      compressNestedSchemas: process.env.CAVEMAN_SHRINK_NESTED_SCHEMA === '1',
+    };
+  }
+  return out;
+}
+
+function loadConfig() {
+  return normalizeConfig(mergeConfig(mergeConfig(DEFAULT_CONFIG, readConfigFile()), envConfig()));
+}
+
+function getTargetModel() {
+  return loadConfig().targetModel;
+}
+
+function getInjectionConfig() {
+  return loadConfig().injection;
+}
+
+function getCompressionConfig() {
+  return loadConfig().compression;
+}
+
+function getStatsConfig() {
+  return loadConfig().stats;
+}
+
+function getMcpShrinkConfig() {
+  return loadConfig().mcpShrink;
+}
+
 function getDefaultMode() {
   // 1. Environment variable (highest priority)
   const envMode = process.env.CAVEMAN_DEFAULT_MODE;
@@ -47,8 +198,8 @@ function getDefaultMode() {
   try {
     const configPath = getConfigPath();
     const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    if (config.defaultMode && VALID_MODES.includes(config.defaultMode.toLowerCase())) {
-      return config.defaultMode.toLowerCase();
+    if (config.defaultMode) {
+      return normalizeMode(config.defaultMode, 'full');
     }
   } catch (e) {
     // Config file doesn't exist or is invalid — fall through
@@ -271,4 +422,23 @@ function readHistory(filePath) {
   }
 }
 
-module.exports = { getDefaultMode, getConfigDir, getConfigPath, VALID_MODES, safeWriteFlag, readFlag, appendFlag, readHistory };
+module.exports = {
+  DEFAULT_CONFIG,
+  getDefaultMode,
+  getConfigDir,
+  getConfigPath,
+  loadConfig,
+  mergeConfig,
+  normalizeConfig,
+  normalizeMode,
+  getTargetModel,
+  getInjectionConfig,
+  getCompressionConfig,
+  getStatsConfig,
+  getMcpShrinkConfig,
+  VALID_MODES,
+  safeWriteFlag,
+  readFlag,
+  appendFlag,
+  readHistory,
+};
