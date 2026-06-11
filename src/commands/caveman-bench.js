@@ -89,6 +89,7 @@ function makeSpendGuard(maxUsd, pricing) {
   const totals = { input: 0, output: 0, cache_read: 0, cache_write: 0, calls: 0 };
   return {
     totals,
+    maxUsd,
     spentUsd() { return costForUsage(totals, pricing) || 0; },
     record(usage) {
       totals.calls += 1;

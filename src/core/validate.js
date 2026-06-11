@@ -64,6 +64,11 @@ function validateCompression(original, compressed, opts = {}) {
   pushDiff(errors, 'numbers_changed', 'Numbers, versions, or dates',
     collect(o, /\b(?:v?\d+\.\d+(?:\.\d+)?|\d{4}-\d{2}-\d{2}|\d+(?:\.\d+)?\s?(?:ms|s|m|h|KB|MB|GB|TB|%|USD|tokens?))\b/gi),
     collect(c, /\b(?:v?\d+\.\d+(?:\.\d+)?|\d{4}-\d{2}-\d{2}|\d+(?:\.\d+)?\s?(?:ms|s|m|h|KB|MB|GB|TB|%|USD|tokens?))\b/gi));
+  // Bare numeric values too ("priority 3", "limit 500") — the unit-suffixed
+  // check above misses them, and they are exactly the kind of fact an LLM
+  // rewrite can silently alter.
+  pushDiff(errors, 'plain_numbers_changed', 'Numeric values',
+    collect(o, /\d+(?:\.\d+)?/g), collect(c, /\d+(?:\.\d+)?/g));
 
   pushDiff(errors, 'table_shape_changed', 'Markdown table shape', tableShapes(o), tableShapes(c));
   pushDiff(errors, 'list_shape_changed', 'List nesting shape', listShapes(o), listShapes(c));

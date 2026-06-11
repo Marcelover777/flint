@@ -11,7 +11,7 @@ const { scanSecrets } = require('../core/secret-scan');
 const { cacheKey, loadCache, saveCache, getCacheEntry, putCacheEntry } = require('../core/cache');
 const { atomicWriteFile, ensureBackup } = require('../core/atomic-write');
 
-const COMPRESSOR_VERSION = 2;
+const COMPRESSOR_VERSION = 3;
 const ALLOWED_EXTS = new Set(['.md', '.txt', '.typ', '.typst', '.tex', '']);
 const LLM_TIMEOUT_MS = Number(process.env.CAVEMAN_LLM_TIMEOUT_MS || 60_000);
 loadLocalEnv();
@@ -117,6 +117,8 @@ function buildCompressPrompt(maskedText, mode, repair) {
     'Rewrite the text below as maximally terse caveman-style technical notes, in the SAME language as the input.',
     'Hard rules:',
     '- Cut 40-60% of characters where safe. Keep every requirement, decision, date, metric, identifier, error, and action item.',
+    '- Reproduce every numeric value exactly, same count, same order. Never round, merge, or drop numbers.',
+    '- Keep uncertainty words (might, may, could, perhaps) attached to the claims they qualify.',
     '- Tokens matching __CAVEMAN_PROTECTED_NNNNNN_hhhhhhhh__ are frozen content. Reproduce each one byte-exact, same count, same order. Never invent, drop, merge, split, or edit them.',
     '- Keep markdown structure identical: same number of list items with the same markers (-, *, 1.) and same indentation; same table rows and column count; do not add or remove headings.',
     '- Compress the WORDS inside each bullet/cell, never the structure around them.',
@@ -341,6 +343,7 @@ async function compressSection(section, opts, config, cache) {
 async function compressFile(opts) {
   const config = loadConfig();
   if (opts.help || !opts.file) return { help: usage() };
+  resetLlmUsage(); // report.llm.usage is per-file, not per-process
   const io = resolveInputOutput(opts.file, opts.out, config);
   const original = fs.readFileSync(io.source, 'utf8');
   if (!original.trim()) throw new Error('Refusing to compress empty file');

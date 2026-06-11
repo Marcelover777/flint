@@ -110,3 +110,31 @@ the SessionStart ruleset lands in the prompt-cache prefix. That surface is
   call; `--check` writes nothing; `--restore` round-trip verified.
 - Caveman voice preserved in SKILL.md/README; no new dependencies; LLM
   compression remains opt-in; local deterministic path remains the default.
+
+## Addendum — fidelity hardening pass (same day)
+
+An in-chat quality review of Fable 5 (high effort) under caveman found two
+fidelity gaps, both fixed and re-validated online (~$0.24, session total
+~$1.55 of $15):
+
+1. **Modality loss.** The deterministic hedge rule deleted `might/maybe/
+   could potentially`, turning "this migration might fail" into "this
+   migration fail" — fact alteration, not compression. Now only
+   conversational hedges ("I think", "it seems") are removed; modal verbs
+   survive, and the LLM prompt explicitly orders uncertainty words kept.
+2. **Unvalidated bare numbers.** The validator only checked numbers with
+   units/dates/versions; an LLM rewrite could silently change "priority 3"
+   to "priority 5". New `plain_numbers_changed` check compares the full
+   numeric sequence; LLM prompt now orders exact numeric reproduction.
+
+Post-fix hybrid doc numbers (stricter validator, COMPRESSOR_VERSION 3):
+
+| Fixture | Hybrid savings | Fallbacks |
+|---------|--------------:|-----------|
+| prose-heavy.md | 53.3% | none (1 repair retry succeeded) |
+| prose-heavy-ptbr.md | 41.5% | none |
+| mixed-code.md | 33.5% | none |
+
+All targets still met (≥25% prose, ≥10% mixed). The ~5pp drop on prose
+fixtures is the price of refusing modality/number drift — accepted as the
+correct trade. Tests: 85/85.

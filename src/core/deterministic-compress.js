@@ -50,7 +50,11 @@ const RULES = [
   // Single-word/short filler removals last.
   ['pleasantries', /\b(?:sure|certainly|of course|happy to|please|kindly|thank you|thanks)\b[,.]?\s*/gi, ''],
   ['fillers', /\b(?:just|really|basically|actually|simply|essentially|generally|literally|very|quite)\b\s*/gi, ''],
-  ['hedges', /\b(?:perhaps|maybe|might|could potentially|i think|in my opinion|it seems|it appears|it may be worth)\b\s*/gi, ''],
+  // Only conversational hedges are removed. Modal verbs (might/may/could,
+  // perhaps/maybe) encode uncertainty in technical claims — deleting them
+  // turns "might fail" into "fail", which is fact loss, not compression.
+  ['hedges', /\b(?:i think|in my opinion|it seems(?: that)?|it appears(?: that)?|it may be worth)\b\s*/gi, ''],
+  ['modal_potentially', /\b(could|may|might) potentially\b/gi, (m, g1) => g1],
   ['leaders', /^(?:i'?ll|i will|i can|i'?d|you can|we will|we can|let me|let'?s|i recommend that)\s+/gim, ''],
 ];
 

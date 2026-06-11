@@ -31,6 +31,13 @@ test('PT-BR phrase rewrites work', () => {
   assert.doesNotMatch(out.compressed, /basicamente/i);
 });
 
+test('modal uncertainty words survive compression', () => {
+  const out = compressDeterministic('This migration might fail if the index is missing. It could potentially corrupt data. Maybe retry later.', { mode: 'full' });
+  assert.match(out.compressed, /might fail/);
+  assert.match(out.compressed, /could corrupt/);
+  assert.match(out.compressed, /\bMaybe\b/i);
+});
+
 test('lite keeps articles', () => {
   const out = compressDeterministic('The user can read the file.', { mode: 'lite' });
   assert.match(out.compressed, /\bThe user\b/);

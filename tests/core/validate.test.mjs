@@ -19,3 +19,11 @@ test('fails when code block changes', () => {
   assert.equal(result.ok, false);
   assert.equal(result.errors[0].code, 'fenced_code_changed');
 });
+
+test('plain numbers without units must not change', () => {
+  const bad = validateCompression('Set priority 3 and limit 500.', 'Set priority 5 and limit 50.', { strict: true });
+  assert.equal(bad.ok, false);
+  assert.ok(bad.errors.some(e => e.code === 'plain_numbers_changed'));
+  const good = validateCompression('Set priority 3 and limit 500 now.', 'Priority 3, limit 500.', { strict: true });
+  assert.ok(!good.errors.some(e => e.code === 'plain_numbers_changed'));
+});
