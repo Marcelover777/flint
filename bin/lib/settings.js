@@ -180,6 +180,7 @@ function removeCavemanHooks(settings, marker = 'caveman') {
 // touches commands matching the exact bare-node shape — won't false-positive
 // on user-authored hooks that just happen to mention "caveman".
 const MANAGED_HOOK_BASENAMES = new Set([
+  'prompt-policy.js',
   'caveman-activate.js',
   'caveman-mode-tracker.js',
   'caveman-stats.js',

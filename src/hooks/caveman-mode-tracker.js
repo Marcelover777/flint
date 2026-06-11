@@ -1,133 +1,101 @@
 #!/usr/bin/env node
-// caveman — UserPromptSubmit hook to track which caveman mode is active
-// Inspects user input for /caveman commands and writes mode to flag file
+// caveman - UserPromptSubmit hook to track mode and inject adaptive reminders.
 
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { execFileSync } = require('child_process');
-const { getDefaultMode, safeWriteFlag, readFlag, VALID_MODES } = require('./caveman-config');
-
-// Modes handled by their own slash commands (/caveman-commit, etc.) — not
-// selectable via /caveman <arg>.
-const INDEPENDENT_MODES = new Set(['commit', 'review', 'compress']);
+const { getDefaultMode, safeWriteFlag, readFlag, VALID_MODES, loadConfig } = require('./caveman-config');
+const { INDEPENDENT_MODES, decideReinforcement } = require('./prompt-policy');
 
 const claudeDir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
 const flagPath = path.join(claudeDir, '.caveman-active');
+
+function runStats(data, tailArgs) {
+  const statsPath = path.join(__dirname, 'caveman-stats.js');
+  const argv = [statsPath];
+  if (data.transcript_path) argv.push('--session-file', data.transcript_path);
+  for (const flag of ['--share', '--all', '--json']) {
+    if (tailArgs.includes(flag)) argv.push(flag);
+  }
+  const sinceIdx = tailArgs.indexOf('--since');
+  if (sinceIdx !== -1 && tailArgs[sinceIdx + 1]) argv.push('--since', tailArgs[sinceIdx + 1]);
+  return execFileSync(process.execPath, argv, { encoding: 'utf8', timeout: 5000 });
+}
+
+function parseModeCommand(prompt) {
+  if (!prompt.startsWith('/caveman')) return null;
+  const parts = prompt.split(/\s+/);
+  const cmd = parts[0];
+  const arg = parts[1] || '';
+  if (cmd === '/caveman-commit') return 'commit';
+  if (cmd === '/caveman-review') return 'review';
+  if (cmd === '/caveman-compress' || cmd === '/caveman:caveman-compress') return 'compress';
+  if (cmd === '/caveman' || cmd === '/caveman:caveman') {
+    if (!arg) return getDefaultMode();
+    if (arg === 'off' || arg === 'stop' || arg === 'disable') return 'off';
+    if (arg === 'wenyan-full') return 'wenyan';
+    if (VALID_MODES.includes(arg) && !INDEPENDENT_MODES.has(arg)) return arg;
+  }
+  return null;
+}
 
 let input = '';
 process.stdin.on('data', chunk => { input += chunk; });
 process.stdin.on('end', () => {
   try {
     const data = JSON.parse(input);
-    const prompt = (data.prompt || '').trim().toLowerCase();
+    const rawPrompt = (data.prompt || '').trim();
+    const prompt = rawPrompt.toLowerCase();
+    const config = loadConfig();
 
-    // Natural language activation (e.g. "activate caveman", "turn on caveman mode",
-    // "talk like caveman"). README tells users they can say these, but the hook
-    // only matched /caveman commands — flag file and statusline stayed out of sync.
-    if (/\b(activate|enable|turn on|start|talk like)\b.*\bcaveman\b/i.test(prompt) ||
-        /\bcaveman\b.*\b(mode|activate|enable|turn on|start)\b/i.test(prompt)) {
-      if (!/\b(stop|disable|turn off|deactivate)\b/i.test(prompt)) {
-        const mode = getDefaultMode();
-        if (mode !== 'off') {
-          safeWriteFlag(flagPath, mode);
-        }
-      }
-    }
-
-    // /caveman-stats [--share] — block the prompt and inject stats output as
-    // the hook's reason. The script reads the active session log, so we pass
-    // transcript_path through when Claude Code provides it.
     const statsMatch = /^\/caveman(?::caveman)?-stats(?:\s+(.*))?$/.exec(prompt);
     if (statsMatch) {
       const tailArgs = (statsMatch[1] || '').trim().split(/\s+/).filter(Boolean);
       try {
-        const statsPath = path.join(__dirname, 'caveman-stats.js');
-        const argv = [statsPath];
-        if (data.transcript_path) argv.push('--session-file', data.transcript_path);
-        if (tailArgs.includes('--share')) argv.push('--share');
-        if (tailArgs.includes('--all')) argv.push('--all');
-        const sinceIdx = tailArgs.indexOf('--since');
-        if (sinceIdx !== -1 && tailArgs[sinceIdx + 1]) {
-          argv.push('--since', tailArgs[sinceIdx + 1]);
-        }
-        const out = execFileSync(process.execPath, argv, { encoding: 'utf8', timeout: 5000 });
+        const out = runStats(data, tailArgs);
         process.stdout.write(JSON.stringify({ decision: 'block', reason: out.trim() }));
-      } catch (e) {
+      } catch (_) {
         process.stdout.write(JSON.stringify({
           decision: 'block',
-          reason: 'caveman-stats: could not run stats script.\nTry manually: node hooks/caveman-stats.js'
+          reason: 'caveman-stats: could not run stats script.\nTry manually: node hooks/caveman-stats.js',
         }));
       }
       return;
     }
 
-    // Match /caveman commands
-    if (prompt.startsWith('/caveman')) {
-      const parts = prompt.split(/\s+/);
-      const cmd = parts[0]; // /caveman, /caveman-commit, /caveman-review, etc.
-      const arg = parts[1] || '';
-
-      let mode = null;
-
-      if (cmd === '/caveman-commit') {
-        mode = 'commit';
-      } else if (cmd === '/caveman-review') {
-        mode = 'review';
-      } else if (cmd === '/caveman-compress' || cmd === '/caveman:caveman-compress') {
-        mode = 'compress';
-      } else if (cmd === '/caveman' || cmd === '/caveman:caveman') {
-        // Bare /caveman → activate at configured default
-        if (!arg) {
-          mode = getDefaultMode();
-        } else if (arg === 'off' || arg === 'stop' || arg === 'disable') {
-          mode = 'off';
-        } else if (arg === 'wenyan-full') {
-          // Canonical alias — config stores as 'wenyan'
-          mode = 'wenyan';
-        } else if (VALID_MODES.includes(arg) && !INDEPENDENT_MODES.has(arg)) {
-          mode = arg;
-        }
-        // Unknown arg → mode stays null, flag untouched (no silent overwrite)
-      }
-
-      if (mode && mode !== 'off') {
-        safeWriteFlag(flagPath, mode);
-      } else if (mode === 'off') {
-        try { fs.unlinkSync(flagPath); } catch (e) {}
+    if (/\b(activate|enable|turn on|start|talk like)\b.*\bcaveman\b/i.test(rawPrompt) ||
+        /\bcaveman\b.*\b(mode|activate|enable|turn on|start)\b/i.test(rawPrompt)) {
+      if (!/\b(stop|disable|turn off|deactivate)\b/i.test(rawPrompt)) {
+        const mode = getDefaultMode();
+        if (mode !== 'off') safeWriteFlag(flagPath, mode);
       }
     }
 
-    // Detect deactivation — natural language and slash commands
-    if (/\b(stop|disable|deactivate|turn off)\b.*\bcaveman\b/i.test(prompt) ||
-        /\bcaveman\b.*\b(stop|disable|deactivate|turn off)\b/i.test(prompt) ||
-        /\bnormal mode\b/i.test(prompt)) {
-      try { fs.unlinkSync(flagPath); } catch (e) {}
+    const mode = parseModeCommand(prompt);
+    if (mode && mode !== 'off') {
+      safeWriteFlag(flagPath, mode);
+    } else if (mode === 'off') {
+      try { fs.unlinkSync(flagPath); } catch (_) {}
     }
 
-    // Per-turn reinforcement: emit a structured reminder when caveman is active.
-    // The SessionStart hook injects the full ruleset once, but models lose it
-    // when other plugins inject competing style instructions every turn.
-    // This keeps caveman visible in the model's attention on every user message.
-    //
-    // Skip independent modes (commit, review, compress) — they have their own
-    // skill behavior and the base caveman rules would conflict.
-    // readFlag enforces symlink-safe read + size cap + VALID_MODES whitelist.
-    // If the flag is missing, corrupted, oversized, or a symlink pointing at
-    // something like ~/.ssh/id_rsa, readFlag returns null and we emit nothing
-    // — never inject untrusted bytes into model context.
+    if (/\b(stop|disable|deactivate|turn off)\b.*\bcaveman\b/i.test(rawPrompt) ||
+        /\bcaveman\b.*\b(stop|disable|deactivate|turn off)\b/i.test(rawPrompt) ||
+        /\bnormal mode\b/i.test(rawPrompt)) {
+      try { fs.unlinkSync(flagPath); } catch (_) {}
+    }
+
     const activeMode = readFlag(flagPath);
-    if (activeMode && !INDEPENDENT_MODES.has(activeMode)) {
+    const decision = decideReinforcement({ data, prompt: rawPrompt, activeMode, config, claudeDir });
+    if (decision.reinforce) {
       process.stdout.write(JSON.stringify({
         hookSpecificOutput: {
-          hookEventName: "UserPromptSubmit",
-          additionalContext: "CAVEMAN MODE ACTIVE (" + activeMode + "). " +
-            "Drop articles/filler/pleasantries/hedging. Fragments OK. " +
-            "Code/commits/security: write normal."
-        }
+          hookEventName: 'UserPromptSubmit',
+          additionalContext: decision.additionalContext,
+        },
       }));
     }
-  } catch (e) {
-    // Silent fail
+  } catch (_) {
+    // Silent fail.
   }
 });
