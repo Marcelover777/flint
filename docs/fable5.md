@@ -1,6 +1,13 @@
-# Caveman with Claude Fable 5
+# Caveman with Claude Opus 4.8 (formerly Fable 5)
 
-Fable 5 makes token waste more expensive, especially output tokens and repeated context. Caveman V1 handles three surfaces:
+> **Fable 5 was retired.** The Anthropic API now answers `claude-fable-5` with
+> `404 "Claude Fable 5 is not available. Please use Opus 4.8."` The optimizer's
+> defaults moved to **Opus 4.8** (`targetModel`) with `claude-sonnet-4-6` as the
+> compression backend. The Fable notes below are kept for historical context and
+> because old session logs still need to price; see the [Opus 4.8](#opus-48)
+> section for the current setup. Full design doc: [OPTIMIZER.md](./OPTIMIZER.md).
+
+Pricey models make token waste expensive, especially output tokens and repeated context. The optimizer handles three surfaces:
 
 - output: caveman mode, cavecrew compact contracts;
 - input/context: micro-inject, local memory compression, MCP shrink;

@@ -27,7 +27,7 @@
 A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill/plugin (also Codex, Gemini, Cursor, Windsurf, Cline, Copilot, 30+ more) that makes agent talk like caveman — cuts **~75% of output tokens**, keeps full technical accuracy. Brain still big. Mouth small.
 
 > [!NOTE]
-> **Fork of [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) (MIT).** This repo keeps the full caveman product and adds a **model-aware token-cost optimizer** for **Claude Fable 5 _and_ Claude Opus 4.8**: safe doc/context compression, MCP metadata shrink, adaptive prompt injection, and a budget-guarded benchmark + USD pricing. The optimizer cuts *token counts*, so it works on any Claude model — and saves **~1.5× more money on Opus 4.8** than Fable 5, because Opus tokens cost more. **→ Read [docs/OPTIMIZER.md](./docs/OPTIMIZER.md)** for how it works and what it can do. Upstream attribution in [NOTICE](./NOTICE).
+> **Fork of [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) (MIT).** This repo keeps the full caveman product and adds a **model-aware token-cost optimizer** built for **Claude Opus 4.8** (Fable 5 was retired by Anthropic — the API now says *"not available, please use Opus 4.8"*). On a **real, budgeted Opus 4.8 benchmark** it cut **76.7% of output tokens** (mean; p50 79.3%) with **zero fidelity failures**, plus **15–51% of re-sent doc/context** — surfaces caveman doesn't touch at all. It adds safe doc compression, MCP metadata shrink, adaptive injection, and a budget-guarded USD benchmark. **→ [docs/OPTIMIZER.md](./docs/OPTIMIZER.md)** explains how it works, why it doesn't lose quality, and how it compares to caveman. Upstream attribution in [NOTICE](./NOTICE).
 
 ## Before / After
 
@@ -154,24 +154,35 @@ Real token counts from the Claude API. Average **65% output reduction** across 1
 
 Raw data and reproduction script: [`benchmarks/`](./benchmarks/). Three-arm eval harness (baseline / terse / skill) lives in [`evals/`](./evals/) — caveman compared against `Answer concisely.` not against verbose default, so the delta is honest.
 
-### Fable 5 / Opus 4.8 optimizer
+### Opus 4.8 token-cost optimizer
+
+> **Fable 5 was retired** — the API answers `claude-fable-5` with *"not
+> available, please use Opus 4.8."* The optimizer now defaults to Opus 4.8.
 
 A **model-aware token-cost optimizer** sits on top of caveman. It attacks four
 surfaces — model output, re-sent context/docs, MCP tool metadata, and
 measurement — and prices the result for the model you actually ran:
 
 - micro-inject by default for Claude Code SessionStart, with full skill fallback via config;
-- `/caveman-stats --json` reports input/output/cache tokens and USD cost for `claude-fable-5`, `claude-opus-4-8`, and any Claude model (longest-prefix pricing);
-- `/caveman-compress --local-only` runs without network/API; `--llm` is opt-in, with protected spans, secret-scan abort, per-section validation + one repair pass, and a `--max-llm-usd` spend cap;
+- `/caveman-stats --json` reports input/output/cache tokens and USD cost for `claude-opus-4-8` (default), `claude-sonnet-4-6`, `claude-haiku-4-5`, and any Claude model (longest-prefix pricing);
+- `/caveman-compress --local-only` runs with no network; `--llm` is opt-in (default backend `claude-sonnet-4-6`), with protected spans, secret-scan abort, per-section validation + one repair pass + safe fallback, and a `--max-llm-usd` spend cap;
 - `/caveman-bench --online --model claude-opus-4-8` re-benchmarks against Opus directly (budget-guarded, hard $15 cap);
 - `caveman-shrink` preserves `inputSchema`, never mutates `tools/call`, and supports newline JSON + `Content-Length` framing.
 
-**Does it work on Opus 4.8 as well as Fable 5?** Yes — it cuts *token counts*,
-which is model-independent, so the ~70% output / ~25–55% doc savings transfer.
-And since Opus output is $75/M vs Fable's $50/M, the **same cut saves ~1.5× more
-real money on Opus 4.8**. The headline percentages were measured on Fable 5;
-re-run the bench above for a verified Opus number. Full detail, benchmarks, and
-safety guarantees: **[docs/OPTIMIZER.md](./docs/OPTIMIZER.md)**.
+**Real Opus 4.8 results** (budgeted run, $0.88, [raw JSON](./evals/reports/claude-opus-4-8-2026-06-13-online.json)):
+
+| Surface | Result | vs caveman |
+|---|---|---|
+| Output tokens | **76.7%** cut (mean; p50 79.3%, worst 64.5%) | caveman-style line cut 59.4% on the same run → optimizer emits **~43% fewer** |
+| Re-sent doc/context | **15–51%** cut, every doc validated intact | caveman: **0%** (no context surface) |
+| Fidelity | **0 failures** | — |
+
+**Does it lose answer quality?** No — and that's enforced, not hoped: it cuts
+filler/redundancy, **never** code/identifiers/paths/URLs/numbers (byte-frozen and
+validated), and any risky rewrite that drifts is **rejected and falls back** to a
+safe result. The worst case is "compressed less," never "corrupted." Full detail,
+the Opus benchmark, the **why-no-quality-loss** breakdown, and the **caveman
+comparison**: **→ [docs/OPTIMIZER.md](./docs/OPTIMIZER.md)**.
 
 LLM compression may send selected prose to the Claude API. API traffic can have retention requirements; do not run LLM compression on sensitive documents. Local-only mode stays on machine.
 

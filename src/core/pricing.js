@@ -29,6 +29,23 @@ const MODEL_PRICING = {
     cacheReadPerMTok: 1.50,
     source: 'anthropic-pricing-prefix',
   },
+  // Current-generation models commonly seen post-Fable (Sonnet 4.6 is the
+  // default compression backend). Numbers inherited from their 4.x family,
+  // flagged unverified; longer keys win over the family prefix in pricingForModel.
+  'claude-sonnet-4-6': {
+    inputPerMTok: 3.00,
+    outputPerMTok: 15.00,
+    cacheWritePerMTok: 3.75,
+    cacheReadPerMTok: 0.30,
+    source: 'inherited-sonnet-4-family-unverified',
+  },
+  'claude-haiku-4-5': {
+    inputPerMTok: 0.80,
+    outputPerMTok: 4.00,
+    cacheWritePerMTok: 1.00,
+    cacheReadPerMTok: 0.08,
+    source: 'inherited-haiku-4-family-unverified',
+  },
   'claude-sonnet-4': {
     inputPerMTok: 3.00,
     outputPerMTok: 15.00,

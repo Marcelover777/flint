@@ -1,0 +1,279 @@
+{
+  "schema_version": 2,
+  "mode": "online",
+  "model": "claude-opus-4-8",
+  "budget": {
+    "max_spend_usd": 1.5,
+    "hard_cap_usd": 15
+  },
+  "spend": {
+    "total_usd": 0.88236,
+    "total_usd_formatted": "$0.882",
+    "tokens": {
+      "input": 12239,
+      "output": 9317,
+      "cache_read": 0,
+      "cache_write": 0,
+      "calls": 21
+    }
+  },
+  "surfaces": {
+    "output": {
+      "arms": [
+        "baseline",
+        "v1-micro-full",
+        "micro-full"
+      ],
+      "prompts_run": 6,
+      "rows": [
+        {
+          "tag": "en-dev",
+          "file": "dev-short.txt",
+          "prompt": "What is a closure in JavaScript?",
+          "outputs": {
+            "baseline": {
+              "output_tokens": 800,
+              "input_tokens": 18,
+              "stop_reason": "max_tokens",
+              "chars": 2177
+            },
+            "v1-micro-full": {
+              "output_tokens": 282,
+              "input_tokens": 112,
+              "stop_reason": "end_turn",
+              "chars": 701
+            },
+            "micro-full": {
+              "output_tokens": 148,
+              "input_tokens": 113,
+              "stop_reason": "end_turn",
+              "chars": 399
+            }
+          }
+        },
+        {
+          "tag": "en-dev",
+          "file": "dev-short.txt",
+          "prompt": "Why does React re-render when props change?",
+          "outputs": {
+            "baseline": {
+              "output_tokens": 800,
+              "input_tokens": 17,
+              "stop_reason": "max_tokens",
+              "chars": 2374
+            },
+            "v1-micro-full": {
+              "output_tokens": 350,
+              "input_tokens": 111,
+              "stop_reason": "end_turn",
+              "chars": 978
+            },
+            "micro-full": {
+              "output_tokens": 277,
+              "input_tokens": 112,
+              "stop_reason": "end_turn",
+              "chars": 716
+            }
+          }
+        },
+        {
+          "tag": "pt-br",
+          "file": "pt-br.txt",
+          "prompt": "Explique por que um componente React re-renderiza quando recebe um objeto inline como prop.",
+          "outputs": {
+            "baseline": {
+              "output_tokens": 800,
+              "input_tokens": 36,
+              "stop_reason": "max_tokens",
+              "chars": 1969
+            },
+            "v1-micro-full": {
+              "output_tokens": 531,
+              "input_tokens": 130,
+              "stop_reason": "end_turn",
+              "chars": 1223
+            },
+            "micro-full": {
+              "output_tokens": 284,
+              "input_tokens": 131,
+              "stop_reason": "end_turn",
+              "chars": 630
+            }
+          }
+        },
+        {
+          "tag": "pt-br",
+          "file": "pt-br.txt",
+          "prompt": "Analise este erro: TypeError: Cannot read properties of undefined (reading 'id'). Diga causa provavel e proximo teste.",
+          "outputs": {
+            "baseline": {
+              "output_tokens": 784,
+              "input_tokens": 52,
+              "stop_reason": "end_turn",
+              "chars": 1862
+            },
+            "v1-micro-full": {
+              "output_tokens": 252,
+              "input_tokens": 146,
+              "stop_reason": "end_turn",
+              "chars": 570
+            },
+            "micro-full": {
+              "output_tokens": 162,
+              "input_tokens": 147,
+              "stop_reason": "end_turn",
+              "chars": 362
+            }
+          }
+        },
+        {
+          "tag": "agentic",
+          "file": "agentic-coding.txt",
+          "prompt": "You need to modify two files, run tests, and summarize risk. Keep output compact but actionable.",
+          "outputs": {
+            "baseline": {
+              "output_tokens": 426,
+              "input_tokens": 36,
+              "stop_reason": "end_turn",
+              "chars": 1144
+            },
+            "v1-micro-full": {
+              "output_tokens": 153,
+              "input_tokens": 130,
+              "stop_reason": "end_turn",
+              "chars": 378
+            },
+            "micro-full": {
+              "output_tokens": 58,
+              "input_tokens": 131,
+              "stop_reason": "end_turn",
+              "chars": 140
+            }
+          }
+        },
+        {
+          "tag": "agentic",
+          "file": "agentic-coding.txt",
+          "prompt": "A subagent reports 40 findings. Produce main-thread summary with only blockers and next steps.",
+          "outputs": {
+            "baseline": {
+              "output_tokens": 369,
+              "input_tokens": 37,
+              "stop_reason": "end_turn",
+              "chars": 1083
+            },
+            "v1-micro-full": {
+              "output_tokens": 112,
+              "input_tokens": 131,
+              "stop_reason": "end_turn",
+              "chars": 286
+            },
+            "micro-full": {
+              "output_tokens": 62,
+              "input_tokens": 132,
+              "stop_reason": "end_turn",
+              "chars": 132
+            }
+          }
+        }
+      ],
+      "output_reduction_vs_baseline": {
+        "v1-micro-full": {
+          "mean": 0.5936905772939353,
+          "p50": 0.6408450704225352,
+          "worst": 0.33625,
+          "best": 0.6964769647696477,
+          "n": 6
+        },
+        "micro-full": {
+          "mean": 0.7671575719966982,
+          "p50": 0.7933673469387755,
+          "worst": 0.645,
+          "best": 0.863849765258216,
+          "n": 6
+        }
+      }
+    },
+    "doc_compression": {
+      "files": [
+        {
+          "file": "mixed-code.md",
+          "local_only": {
+            "ok": true,
+            "savings_ratio": 0.10932475884244373
+          },
+          "hybrid": {
+            "ok": true,
+            "savings_ratio": 0.31189710610932475,
+            "llm": {
+              "sections_attempted": 4,
+              "sections_accepted": 4,
+              "fallback_counts": {},
+              "usage": {
+                "calls": 5,
+                "input": 3154,
+                "output": 774,
+                "cache_read": 0,
+                "cache_write": 0
+              }
+            }
+          }
+        },
+        {
+          "file": "prose-heavy-ptbr.md",
+          "local_only": {
+            "ok": true,
+            "savings_ratio": 0.08742977528089887
+          },
+          "hybrid": {
+            "ok": true,
+            "savings_ratio": 0.29389044943820225,
+            "llm": {
+              "sections_attempted": 4,
+              "sections_accepted": 3,
+              "fallback_counts": {
+                "validation_failed": 1
+              },
+              "usage": {
+                "calls": 5,
+                "input": 3484,
+                "output": 933,
+                "cache_read": 0,
+                "cache_write": 0
+              }
+            }
+          }
+        },
+        {
+          "file": "prose-heavy.md",
+          "local_only": {
+            "ok": true,
+            "savings_ratio": 0.13254203758654798
+          },
+          "hybrid": {
+            "ok": true,
+            "savings_ratio": 0.5129574678536103,
+            "llm": {
+              "sections_attempted": 5,
+              "sections_accepted": 5,
+              "fallback_counts": {},
+              "usage": {
+                "calls": 6,
+                "input": 3879,
+                "output": 960,
+                "cache_read": 0,
+                "cache_write": 0
+              }
+            }
+          }
+        }
+      ],
+      "v1_reference": {
+        "project-notes.md": 0.1147,
+        "mixed-with-code.md": 0.0355
+      }
+    }
+  },
+  "failures": [],
+  "fidelity_verdict": "no_critical_failures"
+}

@@ -36,7 +36,7 @@ async function countTokensAnthropic(payload, opts = {}) {
   }
 
   const body = {
-    model: opts.model || 'claude-fable-5',
+    model: opts.model || 'claude-opus-4-8',
     ...(typeof payload === 'string'
       ? { messages: [{ role: 'user', content: payload }] }
       : payload),

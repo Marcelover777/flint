@@ -358,7 +358,7 @@ function jsonPayload({ parsed, mode, sessionFile, compressed }) {
     notes: [
       'Output savings estimated from benchmark ratio for mode/model.',
       s.pricing ? 'Cost uses local pricing table.' : 'Unknown model pricing; cost not calculated.',
-      'Use /caveman-bench --model claude-fable-5 to calibrate.',
+      'Use /caveman-bench --model claude-opus-4-8 to calibrate.',
     ],
   };
 }

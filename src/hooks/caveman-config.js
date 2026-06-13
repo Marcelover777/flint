@@ -22,7 +22,9 @@ const VALID_MODES = [
 const DEFAULT_CONFIG = {
   schema_version: 1,
   defaultMode: 'full',
-  targetModel: 'claude-fable-5',
+  // Fable 5 was retired by Anthropic ("not available, please use Opus 4.8"), so
+  // the default target is Opus 4.8. Override with CAVEMAN_TARGET_MODEL or config.
+  targetModel: 'claude-opus-4-8',
   injection: {
     strategy: 'adaptive',
     sessionStart: 'micro',
@@ -37,7 +39,11 @@ const DEFAULT_CONFIG = {
     strict: true,
     localFirst: true,
     llmEnabled: false,
-    llmModel: 'claude-fable-5',
+    // Compression backend is a one-time, amortized cost on docs you reuse
+    // forever, so default to a capable-but-cheap model rather than the pricey
+    // session model. Sonnet 4.6 preserves quality and the validator/fallback
+    // catches any miss. (Was Fable 5, now retired.)
+    llmModel: 'claude-sonnet-4-6',
     minLocalSavingsToSkipLLM: 0.35,
     cache: true,
     sourceSplit: true,

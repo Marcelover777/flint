@@ -3,7 +3,7 @@
 // online benchmark against the Anthropic API.
 //
 //   node src/commands/caveman-bench.js --offline --report
-//   node src/commands/caveman-bench.js --online [--max-spend 1] [--model claude-fable-5] [--report]
+//   node src/commands/caveman-bench.js --online [--max-spend 1] [--model claude-opus-4-8] [--report]
 //
 // Online mode never exceeds --max-spend (default $1.00) and refuses any value
 // above the hard cap of $15.00. Spend is computed from API-reported usage via
@@ -251,7 +251,7 @@ async function runDocCompressionSmoke({ model, pricing, guard, failures }) {
 async function onlineReport(opts) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY required for --online');
-  const model = opts.model || 'claude-fable-5';
+  const model = opts.model || 'claude-opus-4-8';
   const pricing = pricingForModel(model);
   if (!pricing) throw new Error(`No pricing known for model: ${model}`);
   let maxSpend = Number.isFinite(opts.maxSpend) ? opts.maxSpend : DEFAULT_MAX_SPEND_USD;
@@ -285,12 +285,19 @@ async function onlineReport(opts) {
   };
 }
 
+function modelSlug(report) {
+  // Name reports after the model actually benched (was hardcoded "fable5", which
+  // mislabeled Opus runs). Offline reports have no model → keep a neutral slug.
+  const model = report.model || 'offline';
+  return String(model).replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase();
+}
+
 function writeReport(report) {
   const dir = path.join(ROOT, 'evals', 'reports');
   fs.mkdirSync(dir, { recursive: true });
   const date = new Date().toISOString().slice(0, 10);
   const suffix = report.mode === 'online' ? '-online' : '';
-  const jsonPath = path.join(dir, `fable5-${date}${suffix}.json`);
+  const jsonPath = path.join(dir, `${modelSlug(report)}-${date}${suffix}.json`);
   fs.writeFileSync(jsonPath, JSON.stringify(report, null, 2) + '\n');
   return { jsonPath };
 }

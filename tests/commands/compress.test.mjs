@@ -6,7 +6,25 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { compressFile, splitLeadingHeading, extractTextContent, buildCompressPrompt } = require('../../src/commands/caveman-compress.js');
+const { compressFile, splitLeadingHeading, extractTextContent, buildCompressPrompt, parseArgs } = require('../../src/commands/caveman-compress.js');
+
+test('--llm takes an explicit model when one is given', () => {
+  const opts = parseArgs(['CLAUDE.md', '--llm', 'claude-opus-4-8', '--check']);
+  assert.equal(opts.llmModel, 'claude-opus-4-8');
+  assert.equal(opts.check, true);
+});
+
+test('bare --llm before another flag defaults the backend, not swallows the flag', () => {
+  // Regression: `--llm --check` used to set llmModel="--check" and drop --check.
+  const opts = parseArgs(['CLAUDE.md', '--llm', '--check']);
+  assert.equal(opts.llmModel, 'claude-sonnet-4-6');
+  assert.equal(opts.check, true);
+});
+
+test('bare --llm at end of args defaults the backend', () => {
+  const opts = parseArgs(['CLAUDE.md', '--llm']);
+  assert.equal(opts.llmModel, 'claude-sonnet-4-6');
+});
 
 test('local-only check writes nothing and preserves code block', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'caveman-compress-'));

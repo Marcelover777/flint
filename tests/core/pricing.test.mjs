@@ -28,6 +28,19 @@ test('Opus 4.8 1M-context variant prefix-matches the explicit 4.8 entry', () => 
   assert.equal(p.outputPerMTok, 75);
 });
 
+test('Sonnet 4.6 (default compression backend) resolves to an explicit entry', () => {
+  const p = pricingForModel('claude-sonnet-4-6');
+  assert.equal(p.model, 'claude-sonnet-4-6');
+  assert.equal(p.outputPerMTok, 15);
+  assert.equal(p.source, 'inherited-sonnet-4-family-unverified');
+});
+
+test('Haiku 4.5 resolves to an explicit entry', () => {
+  const p = pricingForModel('claude-haiku-4-5');
+  assert.equal(p.model, 'claude-haiku-4-5');
+  assert.equal(p.outputPerMTok, 4);
+});
+
 test('plain Opus 4 still resolves to its own entry', () => {
   const p = pricingForModel('claude-opus-4');
   assert.equal(p.model, 'claude-opus-4');

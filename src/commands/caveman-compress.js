@@ -58,7 +58,12 @@ function parseArgs(argv) {
     else if (arg === '--no-cache') opts.noCache = true;
     else if (arg === '--restore') opts.restore = true;
     else if (arg === '--out') opts.out = argv[++i];
-    else if (arg === '--llm') opts.llmModel = argv[++i] || 'claude-fable-5';
+    else if (arg === '--llm') {
+      // Only consume the next token as the model name if it isn't itself a flag,
+      // so `--llm --check` doesn't silently swallow --check as the model.
+      const next = argv[i + 1];
+      opts.llmModel = (next && !next.startsWith('--')) ? argv[++i] : 'claude-sonnet-4-6';
+    }
     else if (arg === '--max-llm-usd') opts.maxLlmUsd = Number(argv[++i]);
     else if (arg.startsWith('--')) throw new Error(`unknown flag: ${arg}`);
     else positional.push(arg);
