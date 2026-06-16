@@ -209,7 +209,7 @@ measurement — and prices the result for the model you actually ran:
 - `/caveman-bench --online --model claude-opus-4-8` re-benchmarks against Opus directly (budget-guarded, hard $15 cap);
 - `caveman-shrink` preserves `inputSchema`, never mutates `tools/call`, and supports newline JSON + `Content-Length` framing.
 
-**Real Opus 4.8 results** (budgeted run, $0.88, [raw JSON](./evals/reports/claude-opus-4-8-2026-06-13-online.json)):
+**Real Opus 4.8 results** (budgeted run, ~$0.29 at verified $5/$25 pricing, [raw JSON](./evals/reports/claude-opus-4-8-2026-06-13-online.json)):
 
 | Surface | Result | vs caveman |
 |---|---|---|

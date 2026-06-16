@@ -33,9 +33,9 @@ This doc is the engineering view.
 - That output cut is **vs no-compression Opus**. Against a plain caveman-style
   terse line — same prompts, same run — the optimizer still wins **76.7% vs
   59.4%**. See [Token Optimizer vs Caveman](#token-optimizer-vs-caveman).
-- Because Opus output costs $75/M (1.5× Fable's old $50/M), every output token
-  cut is worth more — the optimizer is *most* valuable on the pricey model you're
-  now forced onto.
+- Opus 4.8 output is **$25/M — half the retired Fable 5's $50/M** (verified
+  2026-06-16). Moving off Fable already cut your bill ~2×; the optimizer stacks
+  its percentage reduction on top of that cheaper baseline.
 
 ---
 
@@ -194,15 +194,16 @@ defaults to `claude-opus-4-8`; the compression backend (`llmModel`) defaults to
 
 | | Opus 4.8 (current) | Fable 5 (retired) |
 |---|--:|--:|
-| Input | $15 / M | $10 / M |
-| Output | $75 / M | $50 / M |
-| Cache write | $18.75 / M | $12.50 / M |
-| Cache read | $1.50 / M | $1.00 / M |
-| Pricing provenance | inherited from Opus 4 family — *unverified for 4.8* | verified `anthropic-pricing-2026-06-10` |
+| Input | $5 / M | $10 / M |
+| Output | $25 / M | $50 / M |
+| Cache write | $6.25 / M | $12.50 / M |
+| Cache read | $0.50 / M | $1.00 / M |
+| Pricing provenance | verified `anthropic-pricing-2026-06-16` | verified `anthropic-pricing-2026-06-10` |
 
-Opus output is **1.5× the price** of Fable's, so every output token the optimizer
-cuts is worth 1.5× more. On the model you're now forced onto, the optimizer pays
-for itself faster, not slower.
+Opus 4.8 is **half the price** of the retired Fable 5 on both input and output.
+The forced migration off Fable was itself a ~2× cost cut; the optimizer's value
+is the percentage reduction it adds on top — which is model-independent, so it
+compounds whatever the per-token price happens to be.
 
 ### One honest caveat
 
@@ -234,9 +235,11 @@ there's no reason to pay Opus rates to rewrite it.
 ## Benchmarks (real Opus 4.8 runs)
 
 All numbers below are from a **budgeted real-API run against `claude-opus-4-8`**
-on 2026-06-13, priced via `src/core/pricing.js`. The whole run cost **$0.88** and
-made **21 API calls** (12,239 input / 9,317 output tokens), well under its $1.50
-cap and the $15 hard cap. Raw data:
+on 2026-06-13, priced via `src/core/pricing.js`. At the verified Opus 4.8 rate
+($5/M in, $25/M out) the whole run cost **~$0.29** across **21 API calls**
+(12,239 input / 9,317 output tokens), well under its $1.50 cap and the $15 hard
+cap. (An earlier draft mispriced Opus at $15/$75 and over-reported this as $0.88;
+the token counts are unchanged.) Raw data:
 [`evals/reports/claude-opus-4-8-2026-06-13-online.json`](../evals/reports/claude-opus-4-8-2026-06-13-online.json).
 
 ### Visible output vs no-compression mode — measured on Opus 4.8
@@ -281,13 +284,13 @@ Two things this table proves:
 The two surfaces above stack. A worked Opus 4.8 example — *illustrative, with the
 assumptions shown*, not a single measured number — for one turn that re-sends
 4,000 tokens of project docs as context and would otherwise emit 1,000 output
-tokens (Opus pricing $15/M in, $75/M out):
+tokens (verified Opus 4.8 pricing $5/M in, $25/M out):
 
 | Setup | Context tokens | Output tokens | Cost / turn |
 |-------|---------------:|--------------:|------------:|
-| No compression | 4,000 | 1,000 | $0.1350 |
-| Caveman (output only, 59.4%) | 4,000 | 406 | $0.0905 |
-| **This optimizer** (output 76.7% + docs ~46%) | 2,160 | 233 | **$0.0499** |
+| No compression | 4,000 | 1,000 | $0.0450 |
+| Caveman (output only, 59.4%) | 4,000 | 406 | $0.0302 |
+| **This optimizer** (output 76.7% + docs ~46%) | 2,160 | 233 | **$0.0166** |
 
 → **~45% cheaper per turn than caveman, ~63% cheaper than no compression** — and
 the context savings recur on *every* turn, because the docs were shrunk once.

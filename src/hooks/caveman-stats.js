@@ -15,7 +15,15 @@ try {
   pricingCore = {
     pricingForModel(model) {
       if (!model) return null;
+      // Fallback only (used if require('../core/pricing') fails). Kept in sync
+      // with src/core/pricing.js — current models first so longest-prefix wins.
       const rows = [
+        ['claude-opus-4-8', 5, 25, 6.25, 0.5],
+        ['claude-opus-4-7', 5, 25, 6.25, 0.5],
+        ['claude-opus-4-6', 5, 25, 6.25, 0.5],
+        ['claude-opus-4-5', 5, 25, 6.25, 0.5],
+        ['claude-sonnet-4-6', 3, 15, 3.75, 0.3],
+        ['claude-haiku-4-5', 1, 5, 1.25, 0.1],
         ['claude-fable-5', 10, 50, 12.5, 1],
         ['claude-opus-4', 15, 75, 18.75, 1.5],
         ['claude-sonnet-4', 3, 15, 3.75, 0.3],

@@ -7,15 +7,16 @@
     "hard_cap_usd": 15
   },
   "spend": {
-    "total_usd": 0.88236,
-    "total_usd_formatted": "$0.882",
+    "total_usd": 0.29412,
+    "total_usd_formatted": "$0.294",
     "tokens": {
       "input": 12239,
       "output": 9317,
       "cache_read": 0,
       "cache_write": 0,
       "calls": 21
-    }
+    },
+    "pricing_note": "Repriced 2026-06-16 at verified Opus 4.8 $5/$25 per MTok; earlier value (0.88236) used a mistaken $15/$75. Token counts unchanged."
   },
   "surfaces": {
     "output": {

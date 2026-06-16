@@ -12,12 +12,12 @@ test('Fable 5 resolves to an exact entry with the 2026-06-10 source', () => {
   assert.equal(p.source, 'anthropic-pricing-2026-06-10');
 });
 
-test('Opus 4.8 resolves to an explicit, model-aware entry (not a prefix fallback)', () => {
+test('Opus 4.8 resolves to the verified $5/$25 entry (not a prefix fallback)', () => {
   const p = pricingForModel('claude-opus-4-8');
   assert.equal(p.model, 'claude-opus-4-8');
-  assert.equal(p.outputPerMTok, 75);
-  // Honest provenance: inherited from the Opus 4 family, not a verified 4.8 price.
-  assert.equal(p.source, 'inherited-opus-4-family-unverified');
+  assert.equal(p.inputPerMTok, 5);
+  assert.equal(p.outputPerMTok, 25);
+  assert.equal(p.source, 'anthropic-pricing-2026-06-16');
 });
 
 test('Opus 4.8 1M-context variant prefix-matches the explicit 4.8 entry', () => {
@@ -25,20 +25,21 @@ test('Opus 4.8 1M-context variant prefix-matches the explicit 4.8 entry', () => 
   // "claude-opus-4-8" key must win over the shorter "claude-opus-4" key.
   const p = pricingForModel('claude-opus-4-8[1m]');
   assert.equal(p.model, 'claude-opus-4-8');
-  assert.equal(p.outputPerMTok, 75);
+  assert.equal(p.outputPerMTok, 25);
 });
 
 test('Sonnet 4.6 (default compression backend) resolves to an explicit entry', () => {
   const p = pricingForModel('claude-sonnet-4-6');
   assert.equal(p.model, 'claude-sonnet-4-6');
   assert.equal(p.outputPerMTok, 15);
-  assert.equal(p.source, 'inherited-sonnet-4-family-unverified');
+  assert.equal(p.source, 'anthropic-pricing-2026-06-16');
 });
 
-test('Haiku 4.5 resolves to an explicit entry', () => {
+test('Haiku 4.5 resolves to the verified $1/$5 entry', () => {
   const p = pricingForModel('claude-haiku-4-5');
   assert.equal(p.model, 'claude-haiku-4-5');
-  assert.equal(p.outputPerMTok, 4);
+  assert.equal(p.inputPerMTok, 1);
+  assert.equal(p.outputPerMTok, 5);
 });
 
 test('plain Opus 4 still resolves to its own entry', () => {
@@ -47,14 +48,17 @@ test('plain Opus 4 still resolves to its own entry', () => {
   assert.equal(p.source, 'anthropic-pricing-prefix');
 });
 
-test('Opus output costs 1.5x Fable per output token, so equal % savings = larger $ savings', () => {
-  assert.equal(outputPriceForModel('claude-opus-4-8'), 75);
+test('Opus 4.8 output is half the retired Fable per token (migrating to Opus already cuts cost)', () => {
+  assert.equal(outputPriceForModel('claude-opus-4-8'), 25);
   assert.equal(outputPriceForModel('claude-fable-5'), 50);
   const cut = { output: 1000 };
-  const opusSaved = costForUsage(cut, pricingForModel('claude-opus-4-8'));
-  const fableSaved = costForUsage(cut, pricingForModel('claude-fable-5'));
-  assert.equal(opusSaved > fableSaved, true);
-  assert.equal(Math.round((opusSaved / fableSaved) * 100) / 100, 1.5);
+  const opusCost = costForUsage(cut, pricingForModel('claude-opus-4-8'));
+  const fableCost = costForUsage(cut, pricingForModel('claude-fable-5'));
+  // Opus 4.8 ($25/M out) is half the retired Fable 5 ($50/M out): the same
+  // output on Opus costs 0.5x what it did on Fable. The optimizer's value is
+  // the percent reduction it adds on top, not a per-token price premium.
+  assert.equal(opusCost < fableCost, true);
+  assert.equal(Math.round((opusCost / fableCost) * 100) / 100, 0.5);
 });
 
 test('unknown model returns null rather than guessing', () => {

@@ -1,5 +1,8 @@
-// Fable-aware Claude pricing helpers. Values are USD per million tokens.
+// Model-aware Claude pricing helpers. Values are USD per million tokens.
 // Keep pricing centralized so docs, stats, doctor, and bench cannot drift.
+// Verified against platform.claude.com models overview on 2026-06-16:
+// Opus 4.8 $5/$25, Sonnet 4.6 $3/$15, Haiku 4.5 $1/$5, Fable 5 $10/$50.
+// Cache write (5m) = 1.25x input, cache read = 0.10x input (standard multipliers).
 
 const MODEL_PRICING = {
   'claude-fable-5': {
@@ -11,17 +14,37 @@ const MODEL_PRICING = {
   },
   // Opus 4.8 (and its 1M-context "[1m]" variant) resolve here explicitly so
   // stats/bench/doctor are model-aware instead of leaning on the prefix matcher.
-  // The numbers are inherited from the Opus 4 family and are NOT a confirmed 4.8
-  // figure — update `source` and the values when official pricing publishes, or
-  // override per-machine via the MODEL_PRICING table / CAVEMAN_TARGET_MODEL.
-  // The longer key is matched before 'claude-opus-4' by pricingForModel().
+  // Opus 4.8/4.7/4.6/4.5 are all $5/$25 (verified); only the legacy 4.0/4.1
+  // family is $15/$75. Longer keys win over 'claude-opus-4' in pricingForModel().
   'claude-opus-4-8': {
-    inputPerMTok: 15.00,
-    outputPerMTok: 75.00,
-    cacheWritePerMTok: 18.75,
-    cacheReadPerMTok: 1.50,
-    source: 'inherited-opus-4-family-unverified',
+    inputPerMTok: 5.00,
+    outputPerMTok: 25.00,
+    cacheWritePerMTok: 6.25,
+    cacheReadPerMTok: 0.50,
+    source: 'anthropic-pricing-2026-06-16',
   },
+  'claude-opus-4-7': {
+    inputPerMTok: 5.00,
+    outputPerMTok: 25.00,
+    cacheWritePerMTok: 6.25,
+    cacheReadPerMTok: 0.50,
+    source: 'anthropic-pricing-2026-06-16',
+  },
+  'claude-opus-4-6': {
+    inputPerMTok: 5.00,
+    outputPerMTok: 25.00,
+    cacheWritePerMTok: 6.25,
+    cacheReadPerMTok: 0.50,
+    source: 'anthropic-pricing-2026-06-16',
+  },
+  'claude-opus-4-5': {
+    inputPerMTok: 5.00,
+    outputPerMTok: 25.00,
+    cacheWritePerMTok: 6.25,
+    cacheReadPerMTok: 0.50,
+    source: 'anthropic-pricing-2026-06-16',
+  },
+  // Legacy Opus 4.0 / 4.1 — $15/$75 (the family prefix; 4.5+ override above).
   'claude-opus-4': {
     inputPerMTok: 15.00,
     outputPerMTok: 75.00,
@@ -30,21 +53,21 @@ const MODEL_PRICING = {
     source: 'anthropic-pricing-prefix',
   },
   // Current-generation models commonly seen post-Fable (Sonnet 4.6 is the
-  // default compression backend). Numbers inherited from their 4.x family,
-  // flagged unverified; longer keys win over the family prefix in pricingForModel.
+  // default compression backend). Verified 2026-06-16; longer keys win over
+  // the family prefix in pricingForModel.
   'claude-sonnet-4-6': {
     inputPerMTok: 3.00,
     outputPerMTok: 15.00,
     cacheWritePerMTok: 3.75,
     cacheReadPerMTok: 0.30,
-    source: 'inherited-sonnet-4-family-unverified',
+    source: 'anthropic-pricing-2026-06-16',
   },
   'claude-haiku-4-5': {
-    inputPerMTok: 0.80,
-    outputPerMTok: 4.00,
-    cacheWritePerMTok: 1.00,
-    cacheReadPerMTok: 0.08,
-    source: 'inherited-haiku-4-family-unverified',
+    inputPerMTok: 1.00,
+    outputPerMTok: 5.00,
+    cacheWritePerMTok: 1.25,
+    cacheReadPerMTok: 0.10,
+    source: 'anthropic-pricing-2026-06-16',
   },
   'claude-sonnet-4': {
     inputPerMTok: 3.00,
