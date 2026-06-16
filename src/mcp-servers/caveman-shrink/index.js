@@ -3,7 +3,8 @@
 
 const { spawn } = require('child_process');
 const { JsonRpcFramer } = require('./framing');
-const { transformResponse } = require('./transform');
+const { transformResponse, transformBatch } = require('./transform');
+const { loadCache, saveCache } = require('./cache');
 
 const args = process.argv.slice(2);
 if (args.length === 0) {
@@ -20,6 +21,7 @@ const opts = {
   fields,
   cache: process.env.CAVEMAN_SHRINK_CACHE !== '0',
   compressNestedSchemas: process.env.CAVEMAN_SHRINK_NESTED_SCHEMA === '1',
+  compressToolResults: process.env.CAVEMAN_SHRINK_TOOL_RESULTS === '1',
   preserveInputSchema: true,
   mode: process.env.CAVEMAN_SHRINK_MODE || 'full',
   serverId: args.join(' '),
@@ -42,13 +44,20 @@ upstream.on('exit', (code, signal) => {
 const clientFramer = new JsonRpcFramer({ mode: process.env.CAVEMAN_SHRINK_FRAMING || 'auto' });
 const serverFramer = new JsonRpcFramer({ mode: process.env.CAVEMAN_SHRINK_FRAMING || 'auto' });
 const pending = new Map();
+// Load the shrink cache once for the proxy lifetime; flush on exit instead of
+// reading+writing the whole file on every MCP response.
+opts.cacheObject = opts.cache ? loadCache() : { entries: {} };
+function flushCache() { try { if (opts.cache) saveCache(opts.cacheObject); } catch (_) {} }
+process.on('exit', flushCache);
 
 process.stdin.on('data', chunk => {
   // Forward request bytes unchanged. We parse a side copy only to map id->method.
   upstream.stdin.write(chunk);
   for (const frame of clientFramer.push(chunk)) {
-    const msg = frame.message;
-    if (msg && msg.id != null && msg.method) pending.set(String(msg.id), msg.method);
+    const msgs = Array.isArray(frame.message) ? frame.message : [frame.message];
+    for (const msg of msgs) {
+      if (msg && msg.id != null && msg.method) pending.set(String(msg.id), msg.method);
+    }
   }
 });
 process.stdin.on('end', () => upstream.stdin.end());
@@ -61,10 +70,13 @@ upstream.stdout.on('data', chunk => {
       process.stdout.write(frame.raw);
       continue;
     }
-    const id = frame.message.id != null ? String(frame.message.id) : null;
-    const method = id ? pending.get(id) : null;
-    if (id) pending.delete(id);
-    const out = transformResponse(frame.message, method, opts);
+    const methodFor = (el) => {
+      const eid = el && el.id != null ? String(el.id) : null;
+      const m = eid ? pending.get(eid) : null;
+      if (eid) pending.delete(eid);
+      return m;
+    };
+    const out = transformBatch(frame.message, methodFor, opts);
     process.stdout.write(serverFramer.encode(out, frame.mode));
   }
 });
