@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "source": "evals/reports/claude-opus-4-8-2026-06-15-online.json (micro-full output arm) + benchmarks/",
+  "note": "Mean per-mode OUTPUT-token savings vs a no-compression baseline. Only MEASURED modes are listed. Unmeasured modes are intentionally absent so /caveman-stats reports 'no estimate' instead of inventing a number (CLAUDE.md: numbers must be real). Recalibrate by re-running caveman-bench and updating the measured means here.",
+  "modes": {
+    "full": 0.65
+  }
+}

@@ -1,4 +1,5 @@
 benchmarks/results/*.json
+!benchmarks/results/output-savings.json
 __pycache__/
 *.pyc
 .venv/
