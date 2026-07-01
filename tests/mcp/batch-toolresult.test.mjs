@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { transformBatch, transformResponse } = require('../../src/mcp-servers/caveman-shrink/transform.js');
+const { transformBatch, transformResponse } = require('../../src/mcp-servers/flint-shrink/transform.js');
 
 test('JSON-RPC batch responses are each compressed (was passthrough)', () => {
   const batch = [

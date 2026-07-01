@@ -23,7 +23,7 @@ const SETTINGS = requireCjs(path.join(REPO_ROOT, 'bin', 'lib', 'settings.js'));
 const IS_WIN = process.platform === 'win32';
 
 function freshTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'caveman-opencode-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'flint-opencode-'));
 }
 
 // Make a throwaway `opencode` binary on PATH so detectMatch('command:opencode')
@@ -65,32 +65,32 @@ test('opencode fresh install drops plugin, commands, agents, skills, AGENTS.md, 
     assert.notEqual(r.status, 2, `argv error: ${r.stderr}`);
 
     const ocDir = path.join(xdg, 'opencode');
-    assert.ok(fs.existsSync(path.join(ocDir, 'plugins', 'caveman', 'plugin.js')), 'plugin.js missing');
-    assert.ok(fs.existsSync(path.join(ocDir, 'plugins', 'caveman', 'package.json')), 'plugin package.json missing');
-    assert.ok(fs.existsSync(path.join(ocDir, 'plugins', 'caveman', 'caveman-config.cjs')), 'caveman-config.cjs sibling missing');
+    assert.ok(fs.existsSync(path.join(ocDir, 'plugins', 'flint', 'plugin.js')), 'plugin.js missing');
+    assert.ok(fs.existsSync(path.join(ocDir, 'plugins', 'flint', 'package.json')), 'plugin package.json missing');
+    assert.ok(fs.existsSync(path.join(ocDir, 'plugins', 'flint', 'flint-config.cjs')), 'flint-config.cjs sibling missing');
 
-    for (const f of ['caveman.md', 'caveman-commit.md', 'caveman-review.md', 'caveman-compress.md', 'caveman-stats.md', 'caveman-help.md']) {
+    for (const f of ['flint.md', 'flint-commit.md', 'flint-review.md', 'flint-compress.md', 'flint-stats.md', 'flint-help.md']) {
       assert.ok(fs.existsSync(path.join(ocDir, 'commands', f)), `command ${f} missing`);
     }
-    for (const f of ['cavecrew-investigator.md', 'cavecrew-builder.md', 'cavecrew-reviewer.md']) {
+    for (const f of ['flint-scout.md', 'flint-smith.md', 'flint-judge.md']) {
       assert.ok(fs.existsSync(path.join(ocDir, 'agents', f)), `agent ${f} missing`);
     }
-    for (const name of ['caveman', 'caveman-commit', 'caveman-review', 'caveman-help', 'caveman-stats', 'caveman-compress', 'cavecrew']) {
+    for (const name of ['flint', 'flint-commit', 'flint-review', 'flint-help', 'flint-stats', 'flint-compress', 'flint-crew']) {
       assert.ok(fs.existsSync(path.join(ocDir, 'skills', name, 'SKILL.md')), `skill ${name}/SKILL.md missing`);
     }
     assert.ok(fs.existsSync(path.join(ocDir, 'AGENTS.md')), 'AGENTS.md missing');
     const agentsBody = fs.readFileSync(path.join(ocDir, 'AGENTS.md'), 'utf8');
-    assert.match(agentsBody, /Respond terse like smart caveman/);
+    assert.match(agentsBody, /Respond terse like smart flint/);
     // Block must be wrapped in begin/end markers so uninstall can isolate it
     // from user-authored content above and below.
-    assert.match(agentsBody, /<!-- caveman-begin -->/);
-    assert.match(agentsBody, /<!-- caveman-end -->/);
+    assert.match(agentsBody, /<!-- flint-begin -->/);
+    assert.match(agentsBody, /<!-- flint-end -->/);
 
     const cfgPath = path.join(ocDir, 'opencode.json');
     assert.ok(fs.existsSync(cfgPath), 'opencode.json missing');
     const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
     assert.ok(Array.isArray(cfg.plugin), 'opencode.json missing plugin array');
-    assert.ok(cfg.plugin.includes('./plugins/caveman/plugin.js'), 'plugin entry missing');
+    assert.ok(cfg.plugin.includes('./plugins/flint/plugin.js'), 'plugin entry missing');
   } finally {
     fs.rmSync(xdg, { recursive: true, force: true });
     fs.rmSync(shimDir, { recursive: true, force: true });
@@ -109,12 +109,12 @@ test('opencode idempotent install does not duplicate plugin entries', () => {
     assert.notEqual(r2.status, 2);
 
     const cfg = JSON.parse(fs.readFileSync(path.join(xdg, 'opencode', 'opencode.json'), 'utf8'));
-    const matches = cfg.plugin.filter(p => p === './plugins/caveman/plugin.js');
+    const matches = cfg.plugin.filter(p => p === './plugins/flint/plugin.js');
     assert.equal(matches.length, 1, `expected 1 plugin entry, got ${matches.length}`);
 
     // AGENTS.md should not have the ruleset duplicated either.
     const agentsMd = fs.readFileSync(path.join(xdg, 'opencode', 'AGENTS.md'), 'utf8');
-    const sentinelCount = (agentsMd.match(/Respond terse like smart caveman/g) || []).length;
+    const sentinelCount = (agentsMd.match(/Respond terse like smart flint/g) || []).length;
     assert.equal(sentinelCount, 1, `expected 1 sentinel, got ${sentinelCount}`);
   } finally {
     fs.rmSync(xdg, { recursive: true, force: true });
@@ -131,7 +131,7 @@ test('opencode re-install preserves user edits to plugin.js without --force', ()
     const r1 = runInstaller(['--only', 'opencode'], env);
     assert.notEqual(r1.status, 2);
 
-    const pluginPath = path.join(xdg, 'opencode', 'plugins', 'caveman', 'plugin.js');
+    const pluginPath = path.join(xdg, 'opencode', 'plugins', 'flint', 'plugin.js');
     const tweak = '\n// USER-TWEAK-DO-NOT-OVERWRITE\n';
     fs.appendFileSync(pluginPath, tweak);
     const beforeBytes = fs.readFileSync(pluginPath, 'utf8');
@@ -165,7 +165,7 @@ test('opencode uninstall strips fenced AGENTS.md block, preserving user prefix a
 
     const agentsMd = path.join(xdg, 'opencode', 'AGENTS.md');
     const installed = fs.readFileSync(agentsMd, 'utf8');
-    // Sandwich the caveman block between user prefix and suffix.
+    // Sandwich the flint block between user prefix and suffix.
     const userPrefix = '# my project\n\nuse 2-space indent.\n\n';
     const userSuffix = '\n## extra\n\nkeep PRs small.\n';
     fs.writeFileSync(agentsMd, userPrefix + installed.trimEnd() + '\n' + userSuffix);
@@ -174,9 +174,9 @@ test('opencode uninstall strips fenced AGENTS.md block, preserving user prefix a
     assert.notEqual(r2.status, 2);
 
     const after = fs.readFileSync(agentsMd, 'utf8');
-    assert.doesNotMatch(after, /<!-- caveman-begin -->/, 'caveman block should be stripped');
-    assert.doesNotMatch(after, /<!-- caveman-end -->/, 'caveman end marker should be stripped');
-    assert.doesNotMatch(after, /Respond terse like smart caveman/, 'caveman body should be stripped');
+    assert.doesNotMatch(after, /<!-- flint-begin -->/, 'flint block should be stripped');
+    assert.doesNotMatch(after, /<!-- flint-end -->/, 'flint end marker should be stripped');
+    assert.doesNotMatch(after, /Respond terse like smart flint/, 'flint body should be stripped');
     assert.match(after, /# my project/, 'user prefix should survive');
     assert.match(after, /use 2-space indent/, 'user prefix body should survive');
     assert.match(after, /## extra/, 'user suffix should survive');
@@ -210,7 +210,7 @@ test('opencode install tolerates JSONC opencode.json (comments + trailing commas
     const cfg = JSON.parse(fs.readFileSync(path.join(ocDir, 'opencode.json'), 'utf8'));
     assert.equal(cfg.model, 'anthropic/claude-sonnet-4-5', 'user model setting wiped');
     assert.equal(cfg.theme, 'dark', 'user theme setting wiped');
-    assert.ok(cfg.plugin.includes('./plugins/caveman/plugin.js'), 'plugin entry missing');
+    assert.ok(cfg.plugin.includes('./plugins/flint/plugin.js'), 'plugin entry missing');
   } finally {
     fs.rmSync(xdg, { recursive: true, force: true });
     fs.rmSync(shimDir, { recursive: true, force: true });
@@ -230,15 +230,15 @@ test('opencode uninstall removes plugin dir, command/agent/skill files, prunes o
     assert.notEqual(r2.status, 2);
 
     const ocDir = path.join(xdg, 'opencode');
-    assert.equal(fs.existsSync(path.join(ocDir, 'plugins', 'caveman')), false, 'plugin dir survived');
-    assert.equal(fs.existsSync(path.join(ocDir, 'commands', 'caveman.md')), false, 'caveman.md command survived');
-    assert.equal(fs.existsSync(path.join(ocDir, 'agents', 'cavecrew-builder.md')), false, 'cavecrew agent survived');
-    assert.equal(fs.existsSync(path.join(ocDir, 'skills', 'caveman')), false, 'caveman skill dir survived');
+    assert.equal(fs.existsSync(path.join(ocDir, 'plugins', 'flint')), false, 'plugin dir survived');
+    assert.equal(fs.existsSync(path.join(ocDir, 'commands', 'flint.md')), false, 'flint.md command survived');
+    assert.equal(fs.existsSync(path.join(ocDir, 'agents', 'flint-smith.md')), false, 'flint-crew agent survived');
+    assert.equal(fs.existsSync(path.join(ocDir, 'skills', 'flint')), false, 'flint skill dir survived');
     assert.equal(fs.existsSync(path.join(ocDir, 'AGENTS.md')), false, 'AGENTS.md (we wrote it) survived');
 
     if (fs.existsSync(path.join(ocDir, 'opencode.json'))) {
       const cfg = JSON.parse(fs.readFileSync(path.join(ocDir, 'opencode.json'), 'utf8'));
-      const stillHasPlugin = Array.isArray(cfg.plugin) && cfg.plugin.includes('./plugins/caveman/plugin.js');
+      const stillHasPlugin = Array.isArray(cfg.plugin) && cfg.plugin.includes('./plugins/flint/plugin.js');
       assert.equal(stillHasPlugin, false, 'plugin entry survived in opencode.json');
     }
   } finally {
@@ -248,7 +248,7 @@ test('opencode uninstall removes plugin dir, command/agent/skill files, prunes o
 });
 
 // ── 5. Plugin smoke: load installed plugin.js, fire fake hooks ────────────
-test('opencode plugin handles /caveman ultra and stop caveman via tui.prompt.append', async () => {
+test('opencode plugin handles /flint ultra and stop flint via tui.prompt.append', async () => {
   const xdg = freshTmpDir();
   const shimDir = shimOpencode();
   try {
@@ -256,24 +256,24 @@ test('opencode plugin handles /caveman ultra and stop caveman via tui.prompt.app
     const r = runInstaller(['--only', 'opencode'], env);
     assert.notEqual(r.status, 2);
 
-    const pluginPath = path.join(xdg, 'opencode', 'plugins', 'caveman', 'plugin.js');
-    const flagPath = path.join(xdg, 'opencode', '.caveman-active');
+    const pluginPath = path.join(xdg, 'opencode', 'plugins', 'flint', 'plugin.js');
+    const flagPath = path.join(xdg, 'opencode', '.flint-active');
 
     // Set XDG_CONFIG_HOME for the plugin so flagPath resolves to our temp dir.
     process.env.XDG_CONFIG_HOME = xdg;
 
     const mod = await import(pathToFileURL(pluginPath).href);
-    const factory = mod.default || mod.CavemanPlugin;
+    const factory = mod.default || mod.FlintPlugin;
     const handlers = await factory({});
 
     // Slash command activates ultra
-    const out1 = await handlers['tui.prompt.append']({ prompt: '/caveman ultra' });
+    const out1 = await handlers['tui.prompt.append']({ prompt: '/flint ultra' });
     assert.equal(fs.readFileSync(flagPath, 'utf8'), 'ultra');
     assert.ok(out1 && typeof out1.append === 'string', 'expected reinforcement append');
-    assert.match(out1.append, /CAVEMAN MODE ACTIVE \(ultra\)/);
+    assert.match(out1.append, /FLINT MODE ACTIVE \(ultra\)/);
 
     // Natural-language deactivation removes flag
-    const out2 = await handlers['tui.prompt.append']({ prompt: 'stop caveman please' });
+    const out2 = await handlers['tui.prompt.append']({ prompt: 'stop flint please' });
     assert.equal(fs.existsSync(flagPath), false, 'flag should be deleted after deactivation');
     assert.equal(out2, undefined, 'no reinforcement when flag absent');
 

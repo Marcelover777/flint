@@ -6,7 +6,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { saveCache, loadCache } = require('../../src/mcp-servers/caveman-shrink/cache.js');
+const { saveCache, loadCache } = require('../../src/mcp-servers/flint-shrink/cache.js');
 
 test('saveCache round-trips via atomic temp+rename', () => {
   const tmp = path.join(os.tmpdir(), 'mcp-cache-' + process.pid + '-' + Date.now() + '.json');

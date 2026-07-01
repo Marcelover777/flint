@@ -48,17 +48,17 @@ test('plain Opus 4 still resolves to its own entry', () => {
   assert.equal(p.source, 'anthropic-pricing-prefix');
 });
 
-test('Opus 4.8 output is half the retired Fable per token (migrating to Opus already cuts cost)', () => {
+test('Fable 5 output costs 2x Opus 4.8 per token (flint savings are worth double on Fable)', () => {
   assert.equal(outputPriceForModel('claude-opus-4-8'), 25);
   assert.equal(outputPriceForModel('claude-fable-5'), 50);
   const cut = { output: 1000 };
   const opusCost = costForUsage(cut, pricingForModel('claude-opus-4-8'));
   const fableCost = costForUsage(cut, pricingForModel('claude-fable-5'));
-  // Opus 4.8 ($25/M out) is half the retired Fable 5 ($50/M out): the same
-  // output on Opus costs 0.5x what it did on Fable. The optimizer's value is
-  // the percent reduction it adds on top, not a per-token price premium.
+  // Fable 5 ($50/M out) is 2x Opus 4.8 ($25/M out): every output token flint
+  // cuts on a Fable session saves twice the USD it would on Opus. The
+  // optimizer's value is the percent reduction, priced at the session model.
   assert.equal(opusCost < fableCost, true);
-  assert.equal(Math.round((opusCost / fableCost) * 100) / 100, 0.5);
+  assert.equal(Math.round((fableCost / opusCost) * 100) / 100, 2);
 });
 
 test('unknown model returns null rather than guessing', () => {

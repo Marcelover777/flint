@@ -13,7 +13,7 @@ function atomicWriteFile(filePath, content, opts = {}) {
 function ensureBackup(filePath, backupDir) {
   const source = path.resolve(filePath);
   if (!fs.existsSync(source)) return null;
-  const dir = backupDir || path.join(path.dirname(source), '.caveman', 'backups', new Date().toISOString().replace(/[:.]/g, '-'));
+  const dir = backupDir || path.join(path.dirname(source), '.flint', 'backups', new Date().toISOString().replace(/[:.]/g, '-'));
   fs.mkdirSync(dir, { recursive: true });
   const dest = path.join(dir, path.basename(source));
   fs.copyFileSync(source, dest);

@@ -20,7 +20,7 @@
   <!-- wordmark -->
   <text x="250" y="168" fill="#f0883e" font-size="92" font-weight="800" letter-spacing="-2">Flint</text>
   <text x="252" y="214" fill="#e6edf3" font-size="26" font-weight="700">Strike sharp. Spend less.</text>
-  <text x="252" y="250" fill="#9da7b3" font-size="20">the Claude Code token-cost optimizer · caveman-powered · built for Opus 4.8</text>
+  <text x="252" y="250" fill="#9da7b3" font-size="20">the Claude Code token-cost optimizer · flint-powered · built for Opus 4.8</text>
 
   <!-- stat chips -->
   <g font-weight="800">

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { makeSpendGuard, summarizeReductions, parseArgs, HARD_CAP_USD, DEFAULT_MAX_SPEND_USD, offlineReport } = require('../../src/commands/caveman-bench.js');
+const { makeSpendGuard, summarizeReductions, parseArgs, HARD_CAP_USD, DEFAULT_MAX_SPEND_USD, offlineReport } = require('../../src/commands/flint-bench.js');
 const { pricingForModel } = require('../../src/core/pricing.js');
 
 test('spend guard blocks calls that would exceed the budget', () => {

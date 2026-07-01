@@ -1,14 +1,14 @@
 {
-  "name": "caveman-repo",
+  "name": "flint-repo",
   "interface": {
-    "displayName": "Caveman Repo"
+    "displayName": "Flint Repo"
   },
   "plugins": [
     {
-      "name": "caveman",
+      "name": "flint",
       "source": {
         "source": "local",
-        "path": "./plugins/caveman"
+        "path": "./plugins/flint"
       },
       "policy": {
         "installation": "AVAILABLE",

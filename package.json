@@ -1,19 +1,19 @@
 {
-  "name": "caveman-installer",
+  "name": "flint-installer",
   "version": "0.1.0",
-  "description": "Caveman installer — detects your AI coding agents and installs caveman for each one.",
+  "description": "Flint installer \u2014 detects your AI coding agents and installs flint for each one.",
   "license": "MIT",
-  "author": "Julius Brussee",
-  "homepage": "https://github.com/JuliusBrussee/caveman",
+  "author": "Marcelover777",
+  "homepage": "https://github.com/Marcelover777/flint",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JuliusBrussee/caveman.git"
+    "url": "git+https://github.com/Marcelover777/flint.git"
   },
   "bugs": {
-    "url": "https://github.com/JuliusBrussee/caveman/issues"
+    "url": "https://github.com/Marcelover777/flint/issues"
   },
   "bin": {
-    "caveman": "./bin/install.js"
+    "flint": "./bin/install.js"
   },
   "engines": {
     "node": ">=18"
@@ -30,8 +30,11 @@
     "skills/",
     "plugins/",
     "commands/",
-    "dist/caveman.skill",
+    "dist/flint.skill",
     "README.md",
     "LICENSE"
+  ],
+  "contributors": [
+    "Julius Brussee (caveman upstream, MIT)"
   ]
 }

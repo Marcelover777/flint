@@ -6,7 +6,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { compressFile, splitLeadingHeading, extractTextContent, buildCompressPrompt, parseArgs } = require('../../src/commands/caveman-compress.js');
+const { compressFile, splitLeadingHeading, extractTextContent, buildCompressPrompt, parseArgs } = require('../../src/commands/flint-compress.js');
 
 test('--llm takes an explicit model when one is given', () => {
   const opts = parseArgs(['CLAUDE.md', '--llm', 'claude-opus-4-8', '--check']);
@@ -27,7 +27,7 @@ test('bare --llm at end of args defaults the backend', () => {
 });
 
 test('local-only check writes nothing and preserves code block', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'caveman-compress-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'flint-compress-'));
   const file = path.join(dir, 'CLAUDE.md');
   const original = '# Notes\n\nSure, you can basically run tests in order to catch the issue.\n\n```sh\nnpm test -- --the-flag\n```\n';
   fs.writeFileSync(file, original);
@@ -39,7 +39,7 @@ test('local-only check writes nothing and preserves code block', async () => {
 });
 
 test('secret fixture aborts before compression', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'caveman-secret-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'flint-secret-'));
   const file = path.join(dir, 'notes.md');
   fs.writeFileSync(file, 'Token: github_pat_abcdefghijklmnopqrstuvwxyz1234567890\n');
   const result = await compressFile({ file, check: true, localOnly: true, strict: true, noCache: true });
@@ -55,7 +55,7 @@ test('splitLeadingHeading preserves markdown heading exactly', () => {
 });
 
 test('local-only check preserves fixture headings', async () => {
-  const fixture = path.resolve('tests/caveman-compress/project-notes.md');
+  const fixture = path.resolve('tests/flint-compress/project-notes.md');
   const original = fs.readFileSync(fixture, 'utf8');
   const result = await compressFile({ file: fixture, check: true, localOnly: true, strict: true, noCache: true });
   assert.equal(result.ok, true);
@@ -64,7 +64,7 @@ test('local-only check preserves fixture headings', async () => {
 });
 
 test('exhausted budget skips LLM with budget_exhausted fallback and no network call', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'caveman-budget-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'flint-budget-'));
   const file = path.join(dir, 'notes.md');
   fs.writeFileSync(file, '# Notes\n\nThe export pipeline reads rows from the warehouse, converts them into CSV batches, uploads each batch to object storage, then notifies the consumer queue when finished. Operators monitor failures with the nightly report and reprocess bad batches by hand when needed.\n');
   const budget = { exhausted: () => true };
@@ -84,7 +84,7 @@ test('repair prompt names violated invariants and previous attempt', () => {
   assert.match(prompt, /REPAIR PASS/);
   assert.match(prompt, /list_shape_changed/);
   assert.match(prompt, /bad earlier output/);
-  assert.match(prompt, /__CAVEMAN_PROTECTED_/);
+  assert.match(prompt, /__FLINT_PROTECTED_/);
 });
 
 test('extractTextContent skips thinking blocks', () => {

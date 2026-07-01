@@ -20,7 +20,7 @@
   <text x="58" y="278" fill="#d2a8e8" font-size="14" font-weight="700">2 · CONTEXTO re-enviado</text>
   <text x="58" y="300" fill="#c9d3de" font-size="12.5">CLAUDE.md / memória / docs</text>
   <text x="58" y="318" fill="#c9d3de" font-size="12.5">reenviados TODO turn</text>
-  <text x="58" y="340" fill="#8b949e" font-size="12">→ caveman-compress (1x, validado)</text>
+  <text x="58" y="340" fill="#8b949e" font-size="12">→ flint-compress (1x, validado)</text>
   <line x1="320" y1="305" x2="470" y2="305" stroke="#5d3a6b" stroke-width="2"/>
 
   <!-- surface 3: MCP (right) -->
@@ -28,16 +28,16 @@
   <text x="818" y="278" fill="#79c0ff" font-size="14" font-weight="700">3 · METADATA MCP</text>
   <text x="818" y="300" fill="#c9d3de" font-size="12.5">descrições de tools (*/list)</text>
   <text x="818" y="318" fill="#c9d3de" font-size="12.5">+ resultados de tools/call (opt-in)</text>
-  <text x="818" y="340" fill="#8b949e" font-size="12">→ caveman-shrink (inputSchema safe)</text>
+  <text x="818" y="340" fill="#8b949e" font-size="12">→ flint-shrink (inputSchema safe)</text>
   <line x1="650" y1="305" x2="800" y2="305" stroke="#2f5d7a" stroke-width="2"/>
 
   <!-- surface 4: measurement (bottom) -->
   <rect x="430" y="410" width="260" height="110" rx="12" fill="#221a14" stroke="#7a5a2f"/>
   <text x="448" y="438" fill="#f0b860" font-size="14" font-weight="700">4 · MEDIÇÃO (ciente de modelo)</text>
   <text x="448" y="460" fill="#c9d3de" font-size="12.5">tokens reais → USD (Opus 4.8 $5/$25)</text>
-  <text x="448" y="482" fill="#8b949e" font-size="12">→ caveman-stats / -bench / -doctor</text>
+  <text x="448" y="482" fill="#8b949e" font-size="12">→ flint-stats / -bench / -doctor</text>
   <text x="448" y="503" fill="#8b949e" font-size="12">benchmark com teto de gasto ($15)</text>
   <line x1="560" y1="340" x2="560" y2="410" stroke="#7a5a2f" stroke-width="2"/>
 
-  <text x="40" y="575" fill="#6e7681" font-size="12.5">Caveman (upstream) só ataca a frente 1. Flint ataca as quatro — por isso encolhe a conta inteira, não só a resposta.</text>
+  <text x="40" y="575" fill="#6e7681" font-size="12.5">Flint (upstream) só ataca a frente 1. Flint ataca as quatro — por isso encolhe a conta inteira, não só a resposta.</text>
 </svg>

@@ -1,4 +1,4 @@
-@./skills/caveman/SKILL.md
-@./skills/caveman-commit/SKILL.md
-@./skills/caveman-review/SKILL.md
-@./skills/caveman-compress/SKILL.md
+@./skills/flint/SKILL.md
+@./skills/flint-commit/SKILL.md
+@./skills/flint-review/SKILL.md
+@./skills/flint-compress/SKILL.md

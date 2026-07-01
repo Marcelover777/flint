@@ -1,4 +1,4 @@
-# Install caveman
+# Install flint
 
 One install. Works for every AI coding agent on your machine.
 
@@ -9,26 +9,26 @@ If just want it to work, run the one-liner. If want to know what gets touched, s
 **macOS / Linux / WSL / Git Bash**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Marcelover777/flint/main/install.sh | bash
 ```
 
 **Windows (PowerShell 5.1+)**
 
 ```powershell
-irm https://raw.githubusercontent.com/JuliusBrussee/caveman/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/Marcelover777/flint/main/install.ps1 | iex
 ```
 
 What it does:
 
 - Auto-detects every supported agent installed on your machine (Claude Code, Cursor, Codex, etc.).
 - For each one, runs that agent's native install path (plugin / extension / rule file / `npx skills add`).
-- Wires Claude Code hooks, statusline badge, and the `caveman-shrink` MCP middleware on top.
+- Wires Claude Code hooks, statusline badge, and the `flint-shrink` MCP middleware on top.
 - Skips anything you don't have. Safe to re-run. ~30 seconds end-to-end.
 
 Want to preview before installing? Use `--dry-run`:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/install.sh | bash -s -- --dry-run
+curl -fsSL https://raw.githubusercontent.com/Marcelover777/flint/main/install.sh | bash -s -- --dry-run
 ```
 
 ## Per-agent install
@@ -37,44 +37,44 @@ If you want to install for one agent (or want to know exactly what command runs 
 
 | Agent | Install command | Auto-activates? |
 |---|---|:-:|
-| **Claude Code** | `claude plugin marketplace add JuliusBrussee/caveman && claude plugin install caveman@caveman` | Yes |
-| **Gemini CLI** | `gemini extensions install https://github.com/JuliusBrussee/caveman` | Yes |
-| **opencode** | `node bin/install.js --only opencode` *(or `npx -y github:JuliusBrussee/caveman -- --only opencode`)* | Yes (plugin + AGENTS.md) |
-| **OpenClaw** | `npx -y github:JuliusBrussee/caveman -- --only openclaw` | Yes (workspace skill + SOUL.md) |
-| **Codex CLI** | `npx skills add JuliusBrussee/caveman -a codex` | Per-session: `/caveman` |
-| **Cursor** | `npx skills add JuliusBrussee/caveman -a cursor` | Per-session by default; `--with-init` for an always-on rule file |
-| **Windsurf** | `npx skills add JuliusBrussee/caveman -a windsurf` | Per-session by default; `--with-init` for an always-on rule file |
-| **Cline** | `npx skills add JuliusBrussee/caveman -a cline` | Per-session by default; `--with-init` for an always-on rule file |
-| **GitHub Copilot** *(soft probe)* | `npx -y github:JuliusBrussee/caveman -- --only copilot --with-init` | Repo-wide instructions via `--with-init` |
-| **Continue** | `npx skills add JuliusBrussee/caveman -a continue` | No — say `/caveman` |
-| **Kilo Code** | `npx skills add JuliusBrussee/caveman -a kilo` | No |
-| **Roo Code** | `npx skills add JuliusBrussee/caveman -a roo` | No |
-| **Augment Code** | `npx skills add JuliusBrussee/caveman -a augment` | No |
-| **Aider Desk** | `npx skills add JuliusBrussee/caveman -a aider-desk` | No |
-| **Sourcegraph Amp** | `npx skills add JuliusBrussee/caveman -a amp` | No |
-| **IBM Bob** | `npx skills add JuliusBrussee/caveman -a bob` | No |
-| **Crush** | `npx skills add JuliusBrussee/caveman -a crush` | No |
-| **Devin (terminal)** | `npx skills add JuliusBrussee/caveman -a devin` | No |
-| **Droid (Factory)** | `npx skills add JuliusBrussee/caveman -a droid` | No |
-| **ForgeCode** | `npx skills add JuliusBrussee/caveman -a forgecode` | No |
-| **Block Goose** | `npx skills add JuliusBrussee/caveman -a goose` | No |
-| **iFlow CLI** | `npx skills add JuliusBrussee/caveman -a iflow-cli` | No |
-| **Kiro CLI** | `npx skills add JuliusBrussee/caveman -a kiro-cli` | No |
-| **Mistral Vibe** | `npx skills add JuliusBrussee/caveman -a mistral-vibe` | No |
-| **OpenHands** | `npx skills add JuliusBrussee/caveman -a openhands` | No |
-| **Qwen Code** | `npx skills add JuliusBrussee/caveman -a qwen-code` | No |
-| **Atlassian Rovo Dev** | `npx skills add JuliusBrussee/caveman -a rovodev` | No |
-| **Tabnine CLI** | `npx skills add JuliusBrussee/caveman -a tabnine-cli` | No |
-| **Trae** | `npx skills add JuliusBrussee/caveman -a trae` | No |
-| **Warp** | `npx skills add JuliusBrussee/caveman -a warp` | No |
-| **Replit Agent** | `npx skills add JuliusBrussee/caveman -a replit` | No |
-| **JetBrains Junie** *(soft probe)* | `npx skills add JuliusBrussee/caveman -a junie` | No |
-| **Qoder** *(soft probe)* | `npx skills add JuliusBrussee/caveman -a qoder` | No |
-| **Google Antigravity** *(soft probe)* | `npx skills add JuliusBrussee/caveman -a antigravity` | No |
+| **Claude Code** | `claude plugin marketplace add Marcelover777/flint && claude plugin install flint@flint` | Yes |
+| **Gemini CLI** | `gemini extensions install https://github.com/Marcelover777/flint` | Yes |
+| **opencode** | `node bin/install.js --only opencode` *(or `npx -y github:Marcelover777/flint -- --only opencode`)* | Yes (plugin + AGENTS.md) |
+| **OpenClaw** | `npx -y github:Marcelover777/flint -- --only openclaw` | Yes (workspace skill + SOUL.md) |
+| **Codex CLI** | `npx skills add Marcelover777/flint -a codex` | Per-session: `/flint` |
+| **Cursor** | `npx skills add Marcelover777/flint -a cursor` | Per-session by default; `--with-init` for an always-on rule file |
+| **Windsurf** | `npx skills add Marcelover777/flint -a windsurf` | Per-session by default; `--with-init` for an always-on rule file |
+| **Cline** | `npx skills add Marcelover777/flint -a cline` | Per-session by default; `--with-init` for an always-on rule file |
+| **GitHub Copilot** *(soft probe)* | `npx -y github:Marcelover777/flint -- --only copilot --with-init` | Repo-wide instructions via `--with-init` |
+| **Continue** | `npx skills add Marcelover777/flint -a continue` | No — say `/flint` |
+| **Kilo Code** | `npx skills add Marcelover777/flint -a kilo` | No |
+| **Roo Code** | `npx skills add Marcelover777/flint -a roo` | No |
+| **Augment Code** | `npx skills add Marcelover777/flint -a augment` | No |
+| **Aider Desk** | `npx skills add Marcelover777/flint -a aider-desk` | No |
+| **Sourcegraph Amp** | `npx skills add Marcelover777/flint -a amp` | No |
+| **IBM Bob** | `npx skills add Marcelover777/flint -a bob` | No |
+| **Crush** | `npx skills add Marcelover777/flint -a crush` | No |
+| **Devin (terminal)** | `npx skills add Marcelover777/flint -a devin` | No |
+| **Droid (Factory)** | `npx skills add Marcelover777/flint -a droid` | No |
+| **ForgeCode** | `npx skills add Marcelover777/flint -a forgecode` | No |
+| **Block Goose** | `npx skills add Marcelover777/flint -a goose` | No |
+| **iFlow CLI** | `npx skills add Marcelover777/flint -a iflow-cli` | No |
+| **Kiro CLI** | `npx skills add Marcelover777/flint -a kiro-cli` | No |
+| **Mistral Vibe** | `npx skills add Marcelover777/flint -a mistral-vibe` | No |
+| **OpenHands** | `npx skills add Marcelover777/flint -a openhands` | No |
+| **Qwen Code** | `npx skills add Marcelover777/flint -a qwen-code` | No |
+| **Atlassian Rovo Dev** | `npx skills add Marcelover777/flint -a rovodev` | No |
+| **Tabnine CLI** | `npx skills add Marcelover777/flint -a tabnine-cli` | No |
+| **Trae** | `npx skills add Marcelover777/flint -a trae` | No |
+| **Warp** | `npx skills add Marcelover777/flint -a warp` | No |
+| **Replit Agent** | `npx skills add Marcelover777/flint -a replit` | No |
+| **JetBrains Junie** *(soft probe)* | `npx skills add Marcelover777/flint -a junie` | No |
+| **Qoder** *(soft probe)* | `npx skills add Marcelover777/flint -a qoder` | No |
+| **Google Antigravity** *(soft probe)* | `npx skills add Marcelover777/flint -a antigravity` | No |
 
 "Soft probe" = installer won't auto-detect these without `--only <id>` because there's no reliable always-on signal (Copilot subscription state is auth-gated; the others have no CLI / config-dir-only). Pass the flag when you want them.
 
-For "auto-activates? No" agents, type `/caveman` once per session (or use natural-language triggers like "talk like caveman", "caveman mode").
+For "auto-activates? No" agents, type `/flint` once per session (or use natural-language triggers like "talk like flint", "flint mode").
 
 Full agent matrix (with detection rules) is in `bin/install.js` under the `PROVIDERS` array.
 
@@ -84,8 +84,8 @@ If you'd rather see exactly what runs:
 
 ```bash
 # Clone the repo
-git clone https://github.com/JuliusBrussee/caveman.git
-cd caveman
+git clone https://github.com/Marcelover777/flint.git
+cd flint
 
 # Preview every command the installer would run
 node bin/install.js --dry-run --all
@@ -106,7 +106,7 @@ Useful flags:
 | `--only <id>` | One agent only. Repeatable: `--only claude --only cursor`. |
 | `--dry-run` | Print every command. Write nothing. |
 | `--with-init` | Drop always-on rule files into the current repo (`.cursor/`, `.windsurf/`, `.clinerules/`, `.github/copilot-instructions.md`, `.opencode/AGENTS.md`, `AGENTS.md`) and, if OpenClaw is on the box, append the bootstrap block to `~/.openclaw/workspace/SOUL.md`. |
-| `--with-mcp-shrink` | Register `caveman-shrink` MCP proxy. **On by default.** |
+| `--with-mcp-shrink` | Register `flint-shrink` MCP proxy. **On by default.** |
 | `--no-mcp-shrink` | Skip MCP-shrink registration. |
 | `--with-hooks` / `--no-hooks` | Force-on or force-off the Claude Code hook installer. (Default: on.) |
 | `--skip-skills` | Don't run the npx-skills auto-detect fallback when nothing else matched. |
@@ -123,13 +123,13 @@ These commands ship with the repo/plugin command stubs (model-aware, Opus 4.8 by
 
 | Command | What |
 |---|---|
-| `/caveman-stats --json` | Session usage as schema v2 JSON: input/output/cache tokens, model-aware USD pricing, estimated savings. |
-| `/caveman-compress CLAUDE.md --check --local-only` | Safe dry check. No writes, no API. |
-| `/caveman-compress CLAUDE.source.md --out CLAUDE.md --strict` | Source/compressed split for memory files. |
-| `/caveman-compress CLAUDE.md --llm claude-sonnet-4-6 --max-llm-usd 1` | Opt-in LLM compression after local deterministic pass and secret scan, with a hard spend cap. |
-| `/caveman-compress CLAUDE.md --restore` | Restore latest `.caveman/backups/**` or legacy `CLAUDE.original.md`. |
-| `/caveman-doctor --json` | Machine-readable readiness check. |
-| `/caveman-bench --offline --report` | Offline eval report under `evals/reports/`. |
+| `/flint-stats --json` | Session usage as schema v2 JSON: input/output/cache tokens, model-aware USD pricing, estimated savings. |
+| `/flint-compress CLAUDE.md --check --local-only` | Safe dry check. No writes, no API. |
+| `/flint-compress CLAUDE.source.md --out CLAUDE.md --strict` | Source/compressed split for memory files. |
+| `/flint-compress CLAUDE.md --llm claude-sonnet-4-6 --max-llm-usd 1` | Opt-in LLM compression after local deterministic pass and secret scan, with a hard spend cap. |
+| `/flint-compress CLAUDE.md --restore` | Restore latest `.flint/backups/**` or legacy `CLAUDE.original.md`. |
+| `/flint-doctor --json` | Machine-readable readiness check. |
+| `/flint-bench --offline --report` | Offline eval report under `evals/reports/`. |
 
 Default compression is local-first. LLM compression is disabled unless explicitly requested by flag or config.
 
@@ -142,11 +142,11 @@ For agents without a hook system (Cursor, Windsurf, Cline, Copilot, and friends)
 node bin/install.js --with-init
 
 # Or pull the rule body straight in (manual)
-curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/src/rules/caveman-activate.md \
-  > .cursor/rules/caveman.mdc   # or .windsurf/rules/caveman.md, .clinerules/caveman.md, .github/copilot-instructions.md
+curl -fsSL https://raw.githubusercontent.com/Marcelover777/flint/main/src/rules/flint-activate.md \
+  > .cursor/rules/flint.mdc   # or .windsurf/rules/flint.md, .clinerules/flint.md, .github/copilot-instructions.md
 ```
 
-`--with-init` writes the rule into every supported per-agent location it can detect (`.cursor/rules/`, `.windsurf/rules/`, `.clinerules/`, `.github/copilot-instructions.md`, `.opencode/AGENTS.md`, `AGENTS.md`). It also installs the OpenClaw workspace bootstrap (skill folder + SOUL.md marker block) when `~/.openclaw/workspace/` exists. Single source: [`src/rules/caveman-activate.md`](src/rules/caveman-activate.md).
+`--with-init` writes the rule into every supported per-agent location it can detect (`.cursor/rules/`, `.windsurf/rules/`, `.clinerules/`, `.github/copilot-instructions.md`, `.opencode/AGENTS.md`, `AGENTS.md`). It also installs the OpenClaw workspace bootstrap (skill folder + SOUL.md marker block) when `~/.openclaw/workspace/` exists. Single source: [`src/rules/flint-activate.md`](src/rules/flint-activate.md).
 
 ## Verify
 
@@ -162,37 +162,37 @@ You should see ~30 rows. Detected agents are marked. Anything you wanted but isn
 
 **2. Talk to Claude Code.**
 
-Open Claude Code, type `/caveman`. Response should be terse fragments — "Got it. Caveman mode on." or similar. Try a real question: "What is closures in JS?" — answer should drop articles and read like grunts.
+Open Claude Code, type `/flint`. Response should be terse fragments — "Got it. Flint mode on." or similar. Try a real question: "What is closures in JS?" — answer should drop articles and read like grunts.
 
 **3. Check the flag file.**
 
 ```bash
-cat "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/.caveman-active"
+cat "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/.flint-active"
 # expected output: full
 ```
 
 If it's missing or empty, the SessionStart hook didn't fire. See troubleshooting below.
 
-Statusline should show `[CAVEMAN]` (orange) at the bottom of Claude Code. After your first `/caveman-stats` run it appends a savings counter like `[CAVEMAN] ⛏ 12.4k`.
+Statusline should show `[FLINT]` (orange) at the bottom of Claude Code. After your first `/flint-stats` run it appends a savings counter like `[FLINT] ⚡ 12.4k`.
 
 ## Uninstall
 
 ```bash
-npx -y github:JuliusBrussee/caveman -- --uninstall
+npx -y github:Marcelover777/flint -- --uninstall
 ```
 
 What it removes:
 
-- Caveman hook entries from `$CLAUDE_CONFIG_DIR/settings.json` (default `~/.claude/`; matched by the substring `caveman`).
-- Hook files in `$CLAUDE_CONFIG_DIR/hooks/` (`caveman-activate.js`, `caveman-mode-tracker.js`, `caveman-stats.js`, `caveman-config.js`, `caveman-statusline.{sh,ps1}`, plus the dir's `package.json` marker).
+- Flint hook entries from `$CLAUDE_CONFIG_DIR/settings.json` (default `~/.claude/`; matched by the substring `flint`).
+- Hook files in `$CLAUDE_CONFIG_DIR/hooks/` (`flint-activate.js`, `flint-mode-tracker.js`, `flint-stats.js`, `flint-config.js`, `flint-statusline.{sh,ps1}`, plus the dir's `package.json` marker).
 - The Claude Code plugin and the Gemini CLI extension (if installed).
-- The opencode native plugin (`~/.config/opencode/plugins/caveman/`, the `plugin` and `mcp.caveman-shrink` entries from `opencode.json`, our skill/agent/command files, the caveman block from `AGENTS.md`, and the opencode flag file).
+- The opencode native plugin (`~/.config/opencode/plugins/flint/`, the `plugin` and `mcp.flint-shrink` entries from `opencode.json`, our skill/agent/command files, the flint block from `AGENTS.md`, and the opencode flag file).
 - The OpenClaw workspace skill folder and the marker-fenced block from `~/.openclaw/workspace/SOUL.md` (when present).
-- The `.caveman-active` flag file.
+- The `.flint-active` flag file.
 
 What it does **not** remove:
 
-- Skills installed via `npx skills add` — the `skills` CLI manages those. Run `npx skills remove caveman` (or use your IDE's skill manager).
+- Skills installed via `npx skills add` — the `skills` CLI manages those. Run `npx skills remove flint` (or use your IDE's skill manager).
 - Per-repo rule files written by `--with-init` (`.cursor/rules/`, `.windsurf/rules/`, `.clinerules/`, `.github/copilot-instructions.md`, `.opencode/AGENTS.md`, `AGENTS.md`). Delete by hand if you want.
 
 ## Troubleshooting
@@ -201,22 +201,22 @@ What it does **not** remove:
 
 Open your agent in this repo and say:
 
-> "Read CLAUDE.md and INSTALL.md. Install caveman for me."
+> "Read CLAUDE.md and INSTALL.md. Install flint for me."
 
-Agent read repo. Agent run install. Caveman make agent talk less — agent first job is install caveman to talk less. Snake eat tail.
+Agent read repo. Agent run install. Flint make agent talk less — agent first job is install flint to talk less. Snake eat tail.
 
-Still broken? [Open an issue](https://github.com/JuliusBrussee/caveman/issues).
+Still broken? [Open an issue](https://github.com/Marcelover777/flint/issues).
 
-**"I ran the installer but Claude Code isn't talking caveman."**
+**"I ran the installer but Claude Code isn't talking flint."**
 
 1. Run `node bin/install.js --list` — confirm `claude` is on the detected list. If not, `claude` isn't on `PATH`. Fix that first.
-2. Open `$CLAUDE_CONFIG_DIR/settings.json` (default `~/.claude/settings.json`) and look for `"hooks"` containing `caveman-activate.js` and `caveman-mode-tracker.js`. If missing, re-run with `--force`.
-3. Check `$CLAUDE_CONFIG_DIR/.caveman-active` exists with content `full`. If not, the SessionStart hook silent-failed — check `$CLAUDE_CONFIG_DIR/hooks/` for the JS files and try `node $CLAUDE_CONFIG_DIR/hooks/caveman-activate.js < /dev/null` to see if it errors.
+2. Open `$CLAUDE_CONFIG_DIR/settings.json` (default `~/.claude/settings.json`) and look for `"hooks"` containing `flint-activate.js` and `flint-mode-tracker.js`. If missing, re-run with `--force`.
+3. Check `$CLAUDE_CONFIG_DIR/.flint-active` exists with content `full`. If not, the SessionStart hook silent-failed — check `$CLAUDE_CONFIG_DIR/hooks/` for the JS files and try `node $CLAUDE_CONFIG_DIR/hooks/flint-activate.js < /dev/null` to see if it errors.
 4. Restart Claude Code. The SessionStart hook only fires on session start, not mid-session.
 
 **"Hooks failing on Windows."**
 
-- Use `install.ps1`, not `install.sh`. Git Bash works for the shell version, but the hook side wires PowerShell counterparts (`caveman-statusline.ps1`).
+- Use `install.ps1`, not `install.sh`. Git Bash works for the shell version, but the hook side wires PowerShell counterparts (`flint-statusline.ps1`).
 - PowerShell 5.1 minimum. Check with `$PSVersionTable.PSVersion`.
 - If `irm | iex` blocks on execution policy: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` for the install session, then re-run.
 - Long-running issues: see `docs/install-windows.md` in the repo for manual fallback.
@@ -241,7 +241,7 @@ node bin/install.js --only cursor
 node bin/install.js --with-init --only cursor --only windsurf
 ```
 
-This drops `.cursor/rules/caveman.mdc` (and friends) into your repo. No hooks, no global config, nothing outside the repo.
+This drops `.cursor/rules/flint.mdc` (and friends) into your repo. No hooks, no global config, nothing outside the repo.
 
 **"`npx skills add` errored on a profile slug."**
 
@@ -256,8 +256,8 @@ The installer doesn't phone home. It writes to:
 - Your current working directory (only with `--with-init`) — repo-local rule files.
 - `~/.openclaw/workspace/` (only with `--only openclaw` or `--with-init` when OpenClaw is detected) — the one `--with-init` side-effect outside the cwd.
 
-No telemetry. No analytics. The installer's own code makes no network calls. Network requests do happen indirectly through the per-agent CLIs it shells out to — `claude plugin marketplace add`, `claude plugin install`, `gemini extensions install`, `npm view caveman-shrink`, and `npx -y skills add`. Each fetches from its own registry (Anthropic / GitHub / npm). Source: [`bin/install.js`](bin/install.js).
+No telemetry. No analytics. The installer's own code makes no network calls. Network requests do happen indirectly through the per-agent CLIs it shells out to — `claude plugin marketplace add`, `claude plugin install`, `gemini extensions install`, `npm view flint-shrink`, and `npx -y skills add`. Each fetches from its own registry (Anthropic / GitHub / npm). Source: [`bin/install.js`](bin/install.js).
 
 ---
 
-Stuck? Open an issue: <https://github.com/JuliusBrussee/caveman/issues>
+Stuck? Open an issue: <https://github.com/Marcelover777/flint/issues>
