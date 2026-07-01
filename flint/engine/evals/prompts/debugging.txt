@@ -1,0 +1,2 @@
+Debug: TypeError: Cannot read properties of undefined (reading 'id') at src/auth.ts:42. What should I inspect first?
+Debug: MCP server emits Content-Length frames but proxy line-buffers JSON. Explain failure mode and fix.
