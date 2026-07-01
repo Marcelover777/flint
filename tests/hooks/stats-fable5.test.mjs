@@ -7,8 +7,8 @@ import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const stats = require('../../src/hooks/caveman-stats.js');
-const STATS = path.resolve('src/hooks/caveman-stats.js');
+const stats = require('../../src/hooks/flint-stats.js');
+const STATS = path.resolve('src/hooks/flint-stats.js');
 
 function makeSession(dir) {
   const file = path.join(dir, 's.jsonl');
@@ -20,7 +20,7 @@ function makeSession(dir) {
 
 test('Fable 5 pricing and parseSession include input/cache tokens', () => {
   assert.equal(stats.priceForModel('claude-fable-5'), 50);
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'caveman-stats-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'flint-stats-'));
   const file = makeSession(dir);
   const parsed = stats.parseSession(file);
   assert.equal(parsed.inputTokens, 1000);
@@ -31,10 +31,10 @@ test('Fable 5 pricing and parseSession include input/cache tokens', () => {
 });
 
 test('--json emits schema_version 2 payload', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'caveman-stats-json-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'flint-stats-json-'));
   const claudeDir = path.join(dir, '.claude');
   fs.mkdirSync(claudeDir, { recursive: true });
-  fs.writeFileSync(path.join(claudeDir, '.caveman-active'), 'full');
+  fs.writeFileSync(path.join(claudeDir, '.flint-active'), 'full');
   const file = makeSession(dir);
   const r = spawnSync(process.execPath, [STATS, '--session-file', file, '--json'], {
     encoding: 'utf8',

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Flint"
+  short_description: "Talk like flint. Cut filler. Keep technical accuracy."
+  icon_small: "./assets/flint-small.svg"
+  icon_large: "./assets/flint.svg"
+  default_prompt: "Use $flint to answer briefly, cut filler, and preserve exact technical substance."

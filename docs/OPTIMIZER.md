@@ -3,7 +3,7 @@
 > Brain still big. Mouth small. Bill smaller.
 
 This document explains the **token-cost optimizer** layer of this repository: the
-part that takes the caveman compression idea and turns it into a measured,
+part that takes the flint compression idea and turns it into a measured,
 model-aware, safety-checked tool for cutting the real dollar cost of agent
 sessions on **Claude Opus 4.8** (and any other Claude model, via prefix-matched
 pricing).
@@ -30,9 +30,9 @@ This doc is the engineering view.
 - **Measured on Opus 4.8 (real API, this repo's bench):** it cuts **~77% of
   visible output tokens** (mean 76.7%, p50 79.3%, worst 64.5% across 6 prompts)
   and **~15–51% of re-sent doc context**, with **zero fidelity failures**.
-- That output cut is **vs no-compression Opus**. Against a plain caveman-style
+- That output cut is **vs no-compression Opus**. Against a plain flint-style
   terse line — same prompts, same run — the optimizer still wins **76.7% vs
-  59.4%**. See [Flint vs Caveman](#flint-vs-caveman).
+  59.4%**. See [Flint vs Flint](#flint-vs-flint).
 - Opus 4.8 output is **$25/M — half the retired Fable 5's $50/M** (verified
   2026-06-16). Moving off Fable already cut your bill ~2×; the optimizer stacks
   its percentage reduction on top of that cheaper baseline.
@@ -47,9 +47,9 @@ optimizer touches each one with a different mechanism.
 | # | Surface | Mechanism | Model-specific? |
 |---|---------|-----------|-----------------|
 | 1 | **Model output** | A tiny terseness ruleset injected at session start (`MICRO.md` / `SKILL.md`): *answer only what was asked, no preamble, no recap, drop filler — keep code/ids/paths/URLs/numbers/errors exact.* | No — pure instruction-following |
-| 2 | **Input / re-sent context** | `caveman-compress` rewrites memory files and docs (CLAUDE.md, project notes) so every future session starts from a smaller prompt. | No — produces a smaller file for any reader |
-| 3 | **MCP tool metadata** | `caveman-shrink` middleware compresses `*/list` tool descriptions while preserving `inputSchema`, and never mutates requests or `tools/call`. | No — byte-level transform |
-| 4 | **Measurement** | `caveman-stats` / `caveman-bench` / `caveman-doctor` read real token usage and price it via a central model-pricing table. | **Yes** — this is the only model-aware part |
+| 2 | **Input / re-sent context** | `flint-compress` rewrites memory files and docs (CLAUDE.md, project notes) so every future session starts from a smaller prompt. | No — produces a smaller file for any reader |
+| 3 | **MCP tool metadata** | `flint-shrink` middleware compresses `*/list` tool descriptions while preserving `inputSchema`, and never mutates requests or `tools/call`. | No — byte-level transform |
+| 4 | **Measurement** | `flint-stats` / `flint-bench` / `flint-doctor` read real token usage and price it via a central model-pricing table. | **Yes** — this is the only model-aware part |
 
 The important consequence: **surfaces 1–3 reduce token *counts***, which is the
 same on every model. Only **surface 4** (turning tokens into dollars) cares which
@@ -65,7 +65,7 @@ message one, with no per-turn nagging. Six intensity levels (`lite`, `full`,
 `ultra`, plus `wenyan-*` classical-Chinese variants) trade brevity against
 readability; `full` is the default.
 
-The single most important line — `CAVEMAN full. Answer only what asked — no
+The single most important line — `FLINT full. Answer only what asked — no
 preamble, no recap, no extras…` — was **A/B tuned on real Fable 5 output**. An
 earlier candidate that said "bullets over prose" *regressed* (it encouraged
 enumeration) and was discarded by the bench. The final line costs ~**55 tokens**
@@ -77,16 +77,16 @@ user is confused — then resumes. Compression never costs correctness.
 
 ---
 
-## Surface 2 — Input/context compression (`caveman-compress`)
+## Surface 2 — Input/context compression (`flint-compress`)
 
 The biggest *recurring* cost in a long project isn't one reply — it's the same
 CLAUDE.md, memory, and project notes being re-sent into context every session.
-`caveman-compress` rewrites those files once so every future prompt is smaller.
+`flint-compress` rewrites those files once so every future prompt is smaller.
 
 It runs as a **two-stage, fail-safe pipeline**, per markdown section:
 
 1. **Protect.** Code fences, inline code, URLs, link targets, file paths, env
-   vars, and numbers/dates/versions are masked into frozen `__CAVEMAN_PROTECTED__`
+   vars, and numbers/dates/versions are masked into frozen `__FLINT_PROTECTED__`
    sentinels so no stage can touch them.
 2. **Secret scan.** Known key formats, private-key material, credential paths,
    database URLs, JWT-looking values, and high-entropy tokens **abort the run
@@ -108,25 +108,25 @@ It runs as a **two-stage, fail-safe pipeline**, per markdown section:
      (`no_savings`, `validation_failed`, `secret_risk`, `timeout`, `api_failure`,
      `budget_exhausted`).
 5. **Cache + atomic write + backup.** Only *validated* section outputs are
-   cached. Writes are atomic; the original is backed up under `.caveman/backups/`
+   cached. Writes are atomic; the original is backed up under `.flint/backups/`
    and restorable with `--restore`.
 
 ### Commands
 
 ```bash
 # Safe preview — validate/compress in memory, write nothing, no network:
-node src/commands/caveman-compress.js CLAUDE.md --check --local-only
+node src/commands/flint-compress.js CLAUDE.md --check --local-only
 
 # Compress a source file into the live one, strict invariants, opt-in LLM,
 # with a hard spend cap:
-node src/commands/caveman-compress.js CLAUDE.source.md --out CLAUDE.md \
+node src/commands/flint-compress.js CLAUDE.source.md --out CLAUDE.md \
   --strict --llm claude-sonnet-4-6 --max-llm-usd 1
 
 # JSON report (per-section strategy, fallbacks, fidelity metrics):
-node src/commands/caveman-compress.js project-notes.md --check --json
+node src/commands/flint-compress.js project-notes.md --check --json
 
 # Undo: restore the latest backup
-node src/commands/caveman-compress.js CLAUDE.md --restore
+node src/commands/flint-compress.js CLAUDE.md --restore
 ```
 
 Key flags: `--check`/`--dry-run` (write nothing), `--local-only` (never call the
@@ -136,7 +136,7 @@ API), `--llm <model>` (opt in), `--max-llm-usd <n>` (hard spend cap), `--strict`
 
 ---
 
-## Surface 3 — MCP metadata shrink (`caveman-shrink`)
+## Surface 3 — MCP metadata shrink (`flint-shrink`)
 
 A middleware that wraps any MCP server and compresses verbose tool-list
 descriptions in flight. It is deliberately conservative:
@@ -147,7 +147,7 @@ descriptions in flight. It is deliberately conservative:
 - **never** mutates requests or `tools/call` results;
 - supports both newline-delimited JSON and `Content-Length`-framed MCP transport.
 
-Published as the `caveman-shrink` npm package; see `src/mcp-servers/caveman-shrink/`.
+Published as the `flint-shrink` npm package; see `src/mcp-servers/flint-shrink/`.
 
 ---
 
@@ -156,16 +156,16 @@ Published as the `caveman-shrink` npm package; see `src/mcp-servers/caveman-shri
 You can't optimize what you don't measure, and you shouldn't trust savings
 numbers you can't reproduce. Three tools, one central pricing table.
 
-- **`caveman-stats`** reads the real Claude Code session log and reports input /
+- **`flint-stats`** reads the real Claude Code session log and reports input /
   output / cache-write / cache-read tokens and an estimated USD cost using the
   model's actual pricing. Lifetime savings feed the statusline badge.
-- **`caveman-bench`** has two modes:
+- **`flint-bench`** has two modes:
   - `--offline --report` — token estimates from committed snapshots, no network.
   - `--online [--model <id>] [--max-spend <usd>] [--report]` — a **budget-guarded**
     real-API benchmark. Spend is computed from API-reported usage; a worst-case
     pre-call guard refuses any call that could exceed `--max-spend`, and there is
     a **hard cap of $15** regardless of flags.
-- **`caveman-doctor --json`** verifies hooks, config, statusline, MCP shrink,
+- **`flint-doctor --json`** verifies hooks, config, statusline, MCP shrink,
   the pricing table, the secret scanner, and token-count-API readiness.
 
 Pricing lives in one file (`src/core/pricing.js`) so docs, stats, doctor, and
@@ -211,16 +211,16 @@ The optimizer reduces **visible output and re-sent context**. It does **not**
 reduce hidden/adaptive *thinking* tokens. So "77% fewer output tokens" is 77% of
 the *visible* answer, not of a reasoning trace you never see. (This is why the
 win is real but the headline isn't "77% cheaper end-to-end" — see
-[the cost model](#additional-total-token-cost-reduction-vs-a-caveman-style-baseline).)
+[the cost model](#additional-total-token-cost-reduction-vs-a-flint-style-baseline).)
 
 ### Targeting / re-benchmarking Opus 4.8
 
 ```bash
 # Make stats/doctor price the session as Opus 4.8 (already the default):
-export CAVEMAN_TARGET_MODEL=claude-opus-4-8     # or set targetModel in config.json
+export FLINT_TARGET_MODEL=claude-opus-4-8     # or set targetModel in config.json
 
 # Re-run the real-API benchmark against Opus yourself (budget-guarded):
-node src/commands/caveman-bench.js --online --model claude-opus-4-8 --max-spend 1.5 --report
+node src/commands/flint-bench.js --online --model claude-opus-4-8 --max-spend 1.5 --report
 ```
 
 The Opus 4.8 price is inherited from the Opus 4 family and flagged
@@ -249,10 +249,10 @@ baseline hit the cap on several prompts, so these reductions are *underestimates
 
 | Arm (same prompts, same run) | Mean | p50 | Worst | Best |
 |------------------------------|----:|----:|------:|-----:|
-| Plain caveman-style terse line | 59.4% | 64.1% | 33.6% | 69.6% |
+| Plain flint-style terse line | 59.4% | 64.1% | 33.6% | 69.6% |
 | **This optimizer's tuned line** | **76.7%** | **79.3%** | **64.5%** | **86.4%** |
 
-The optimizer's line emits **~43% fewer output tokens than the caveman-style
+The optimizer's line emits **~43% fewer output tokens than the flint-style
 line** on the same prompts — `(1−0.767) / (1−0.594) ≈ 0.57`. (For reference, the
 earlier Fable 5 run measured 70.7% mean; Opus follows the terseness instruction
 even more tightly.)
@@ -279,7 +279,7 @@ Two things this table proves:
   of shipping a bad rewrite. Less savings, never less correctness. That's the
   quality guarantee in action ([details](#why-it-doesnt-lose-quality)).
 
-### Additional total-token-cost reduction (vs a caveman-style baseline)
+### Additional total-token-cost reduction (vs a flint-style baseline)
 
 The two surfaces above stack. A worked Opus 4.8 example — *illustrative, with the
 assumptions shown*, not a single measured number — for one turn that re-sends
@@ -289,10 +289,10 @@ tokens (verified Opus 4.8 pricing $5/M in, $25/M out):
 | Setup | Context tokens | Output tokens | Cost / turn |
 |-------|---------------:|--------------:|------------:|
 | No compression | 4,000 | 1,000 | $0.0450 |
-| Caveman (output only, 59.4%) | 4,000 | 406 | $0.0302 |
+| Flint (output only, 59.4%) | 4,000 | 406 | $0.0302 |
 | **This optimizer** (output 76.7% + docs ~46%) | 2,160 | 233 | **$0.0166** |
 
-→ **~45% cheaper per turn than caveman, ~63% cheaper than no compression** — and
+→ **~45% cheaper per turn than flint, ~63% cheaper than no compression** — and
 the context savings recur on *every* turn, because the docs were shrunk once.
 
 ### Fidelity & tests
@@ -308,13 +308,13 @@ prior Fable report `evals/reports/fable5-2026-06-11-v2-delivery.md`.
 
 ---
 
-## Flint vs Caveman
+## Flint vs Flint
 
-Caveman (the upstream project this forks) is excellent at **one** thing: making
+Flint (the upstream project this forks) is excellent at **one** thing: making
 the model *say less*. Flint keeps that and adds three more cost
 surfaces — so it shrinks the whole bill, not just the reply.
 
-| Capability | Caveman (upstream) | **Flint (this repo)** |
+| Capability | Flint (upstream) | **Flint (this repo)** |
 |------------|:------------------:|:-------------------------------:|
 | Output token cut | ~65% (output only) | **76.7% on Opus 4.8** (tuned line) |
 | Same-run head-to-head output | 59.4% | **76.7%** (~43% fewer tokens) |
@@ -326,7 +326,7 @@ surfaces — so it shrinks the whole bill, not just the reply.
 | **Secret-scan** abort before any LLM call | ❌ | ✅ |
 | What it reduces | what the agent *says* | what it *says* **+** context re-sent every turn **+** tool metadata |
 
-The brutal part isn't the output line being tighter (it is). It's that **caveman
+The brutal part isn't the output line being tighter (it is). It's that **flint
 leaves your biggest recurring cost — the CLAUDE.md / memory / project docs
 re-sent into context every single turn — completely untouched**, while the Token
 Optimizer compresses it once and proves the dollar savings on the model you
@@ -397,11 +397,11 @@ same work. That's the whole point: **cost down, capability unchanged.**
 |-----------|-------------|
 | Protected spans (code/URLs/paths/env vars/numbers) byte-identical | `src/core/protect.js` + `validate.js` |
 | Secrets abort before any LLM call | `src/core/secret-scan.js` |
-| `--local-only` makes zero network calls | `caveman-compress.js` |
-| `--check` writes no files | `caveman-compress.js` |
-| `--restore` round-trips from backup | `caveman-compress.js` |
+| `--local-only` makes zero network calls | `flint-compress.js` |
+| `--check` writes no files | `flint-compress.js` |
+| `--restore` round-trips from backup | `flint-compress.js` |
 | LLM path: validate → one repair → safe fallback | `compressSection()` |
-| Online spend never exceeds the cap (hard $15) | `caveman-bench.js` spend guard |
+| Online spend never exceeds the cap (hard $15) | `flint-bench.js` spend guard |
 | Modal verbs and bare numbers preserved | deterministic rules + validator |
 
 ---
@@ -411,10 +411,10 @@ same work. That's the whole point: **cost down, capability unchanged.**
 ```
 src/core/         protect, secret-scan, deterministic-compress, validate,
                   markdown-sections, token-count, pricing, cache, atomic-write, env
-src/commands/     caveman-compress, caveman-bench, caveman-doctor, caveman-config
-src/hooks/        prompt-policy (adaptive injection), caveman-stats (model-aware)
-src/mcp-servers/  caveman-shrink (framing + transform)
-skills/caveman/   SKILL.md (full ruleset) + MICRO.md (tiny injected line)
+src/commands/     flint-compress, flint-bench, flint-doctor, flint-config
+src/hooks/        prompt-policy (adaptive injection), flint-stats (model-aware)
+src/mcp-servers/  flint-shrink (framing + transform)
+skills/flint/   SKILL.md (full ruleset) + MICRO.md (tiny injected line)
 evals/            fixtures, prompts, harness, committed reports
 docs/fable5.md    Fable 5 / Opus 4.8 model notes
 ```

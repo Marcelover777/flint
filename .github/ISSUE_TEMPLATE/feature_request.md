@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Make caveman better
+about: Make flint better
 labels: enhancement
 ---
 

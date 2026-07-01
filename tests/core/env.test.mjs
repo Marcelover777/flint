@@ -9,7 +9,7 @@ const require = createRequire(import.meta.url);
 const { loadEnvFile } = require('../../src/core/env.js');
 
 test('loadEnvFile reads local keys without overriding existing env', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'caveman-env-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'flint-env-'));
   const file = path.join(dir, '.env.local');
   fs.writeFileSync(file, 'ANTHROPIC_API_KEY=from-file\nKEEP=from-file\nQUOTED=\"hello world\"\n');
   const env = { KEEP: 'already-set' };

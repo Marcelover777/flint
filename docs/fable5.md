@@ -1,4 +1,4 @@
-# Caveman with Claude Opus 4.8 (formerly Fable 5)
+# Flint with Claude Opus 4.8 (formerly Fable 5)
 
 > **Fable 5 was retired.** The Anthropic API now answers `claude-fable-5` with
 > `404 "Claude Fable 5 is not available. Please use Opus 4.8."` The optimizer's
@@ -9,9 +9,9 @@
 
 Pricey models make token waste expensive, especially output tokens and repeated context. The optimizer handles three surfaces:
 
-- output: caveman mode, cavecrew compact contracts;
+- output: flint mode, flint-crew compact contracts;
 - input/context: micro-inject, local memory compression, MCP shrink;
-- measurement: `/caveman-stats --json` with input/output/cache token fields and Fable 5 pricing.
+- measurement: `/flint-stats --json` with input/output/cache token fields and Fable 5 pricing.
 
 ## Defaults
 
@@ -31,16 +31,16 @@ Pricey models make token waste expensive, especially output tokens and repeated 
 }
 ```
 
-Config path: `~/.config/caveman/config.json` on macOS/Linux or `%APPDATA%\caveman\config.json` on Windows.
+Config path: `~/.config/flint/config.json` on macOS/Linux or `%APPDATA%\flint\config.json` on Windows.
 
 ## Commands
 
 ```bash
-/caveman-stats --json
-/caveman-compress CLAUDE.md --check --local-only
-/caveman-compress CLAUDE.source.md --out CLAUDE.md --strict
-/caveman-doctor --json
-/caveman-bench --offline --report
+/flint-stats --json
+/flint-compress CLAUDE.md --check --local-only
+/flint-compress CLAUDE.source.md --out CLAUDE.md --strict
+/flint-doctor --json
+/flint-bench --offline --report
 ```
 
 ## Safety
@@ -58,8 +58,8 @@ pricingForModel('claude-opus-4-8[1m]')  // 1M-context variant → same entry
 
 Opus 4.8 pricing is inherited from the Opus 4 family and flagged `inherited-opus-4-family-unverified`; update `src/core/pricing.js` when official 4.8 pricing publishes. Because Opus output ($75/M) is 1.5× Fable 5's ($50/M), the same percentage cut saves ~1.5× more money on Opus.
 
-Target Opus for stats/doctor with `CAVEMAN_TARGET_MODEL=claude-opus-4-8`, or benchmark directly with `node src/commands/caveman-bench.js --online --model claude-opus-4-8`. Keep the `--llm` compression backend on a cheaper model. See [OPTIMIZER.md](./OPTIMIZER.md#model-support).
+Target Opus for stats/doctor with `FLINT_TARGET_MODEL=claude-opus-4-8`, or benchmark directly with `node src/commands/flint-bench.js --online --model claude-opus-4-8`. Keep the `--llm` compression backend on a cheaper model. See [OPTIMIZER.md](./OPTIMIZER.md#model-support).
 
 ## Limits
 
-Stats are estimates when they use benchmark ratios or char/token fallback. The official Anthropic token-count API is used only when `ANTHROPIC_API_KEY` exists. Caveman reduces visible output and repeated context; it does not directly reduce hidden adaptive thinking tokens.
+Stats are estimates when they use benchmark ratios or char/token fallback. The official Anthropic token-count API is used only when `ANTHROPIC_API_KEY` exists. Flint reduces visible output and repeated context; it does not directly reduce hidden adaptive thinking tokens.

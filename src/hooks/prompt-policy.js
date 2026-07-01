@@ -9,7 +9,7 @@ const DRIFT_RE = /\b(sure|certainly|of course|happy to|i think|perhaps|maybe|bas
 
 function statePath(claudeDir, sessionId) {
   const safe = String(sessionId || 'default').replace(/[^A-Za-z0-9_.-]/g, '_').slice(0, 80);
-  return path.join(claudeDir, `.caveman-prompt-state-${safe}.json`);
+  return path.join(claudeDir, `.flint-prompt-state-${safe}.json`);
 }
 
 function sessionIdFrom(data) {
@@ -66,14 +66,14 @@ function readLastAssistantFromTranscript(transcriptPath) {
 }
 
 function reinforcementText(mode) {
-  return 'CAVEMAN ' + mode + ' still on: terse, answer-first, no filler' +
+  return 'FLINT ' + mode + ' still on: terse, answer-first, no filler' +
     (mode === 'lite' ? ', keep grammar' : ', fragments OK') +
     '. Code/paths/numbers/errors exact. Plain prose for safety.';
 }
 
 function shouldReinforce({ prompt, activeMode, config, state, transcript }) {
   if (!activeMode || INDEPENDENT_MODES.has(activeMode)) return { reinforce: false, reason: 'inactive_or_independent' };
-  if (/^\/caveman(?:-stats|-compress|-doctor|-bench|-config)?\b/i.test(prompt || '')) {
+  if (/^\/flint(?:-stats|-compress|-doctor|-bench|-config)?\b/i.test(prompt || '')) {
     return { reinforce: false, reason: 'command_prompt' };
   }
   if (SAFETY_RE.test(prompt || '')) return { reinforce: false, reason: 'safety_prompt' };

@@ -1,0 +1,2 @@
+description = "Show Flint token usage, savings, and model-aware USD cost estimates"
+prompt = "Run `node src/hooks/flint-stats.js {{args}}`. If inside Claude Code and a transcript path is available, pass `--session-file <transcript_path>`. Preserve `--json`, `--share`, `--all`, and `--since` flags."

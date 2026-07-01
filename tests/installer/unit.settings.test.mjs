@@ -99,42 +99,42 @@ test('validateHookFields drops empty events and empty hooks parent', () => {
 
 test('addCommandHook is idempotent on substring marker', () => {
   const s = {};
-  const a = SETTINGS.addCommandHook(s, 'SessionStart', { command: '/abs/path/caveman-activate.js', marker: 'caveman-activate' });
-  const b = SETTINGS.addCommandHook(s, 'SessionStart', { command: '/different/abs/path/caveman-activate.js', marker: 'caveman-activate' });
+  const a = SETTINGS.addCommandHook(s, 'SessionStart', { command: '/abs/path/flint-activate.js', marker: 'flint-activate' });
+  const b = SETTINGS.addCommandHook(s, 'SessionStart', { command: '/different/abs/path/flint-activate.js', marker: 'flint-activate' });
   assert.equal(a, true);
   assert.equal(b, false);
   assert.equal(s.hooks.SessionStart.length, 1);
 });
 
-test('hasCavemanHook detects via substring', () => {
-  const s = { hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'node /x/caveman-activate.js' }] }] } };
-  assert.equal(SETTINGS.hasCavemanHook(s, 'SessionStart', 'caveman-activate'), true);
-  assert.equal(SETTINGS.hasCavemanHook(s, 'SessionStart', 'gsd'), false);
-  assert.equal(SETTINGS.hasCavemanHook(s, 'UserPromptSubmit'), false);
+test('hasFlintHook detects via substring', () => {
+  const s = { hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'node /x/flint-activate.js' }] }] } };
+  assert.equal(SETTINGS.hasFlintHook(s, 'SessionStart', 'flint-activate'), true);
+  assert.equal(SETTINGS.hasFlintHook(s, 'SessionStart', 'gsd'), false);
+  assert.equal(SETTINGS.hasFlintHook(s, 'UserPromptSubmit'), false);
 });
 
-test('removeCavemanHooks tolerates malformed hook event values without throwing', () => {
+test('removeFlintHooks tolerates malformed hook event values without throwing', () => {
   // Pre-fix bug: settings.hooks.SessionStart = "oops" (string, not array)
   // would crash on .filter(...) inside the filter loop. Fix delegates to
   // validateHookFields first + adds Array.isArray guard.
   const s = { hooks: { SessionStart: "oops", UserPromptSubmit: { not: 'an array either' } } };
   let removed;
-  assert.doesNotThrow(() => { removed = SETTINGS.removeCavemanHooks(s, 'caveman'); });
+  assert.doesNotThrow(() => { removed = SETTINGS.removeFlintHooks(s, 'flint'); });
   assert.equal(removed, 0);
   assert.equal(s.hooks, undefined);
 });
 
-test('removeCavemanHooks strips by marker and cleans empties', () => {
+test('removeFlintHooks strips by marker and cleans empties', () => {
   const s = {
     hooks: {
       SessionStart: [
-        { hooks: [{ type: 'command', command: 'caveman-x' }] },
+        { hooks: [{ type: 'command', command: 'flint-x' }] },
         { hooks: [{ type: 'command', command: 'other' }] },
       ],
-      UserPromptSubmit: [{ hooks: [{ type: 'command', command: 'caveman-y' }] }],
+      UserPromptSubmit: [{ hooks: [{ type: 'command', command: 'flint-y' }] }],
     },
   };
-  const removed = SETTINGS.removeCavemanHooks(s, 'caveman');
+  const removed = SETTINGS.removeFlintHooks(s, 'flint');
   assert.equal(removed, 2);
   assert.equal(s.hooks.SessionStart.length, 1);
   assert.equal(s.hooks.UserPromptSubmit, undefined);
@@ -144,14 +144,14 @@ test('rewriteLegacyManagedHookCommands rewrites bare-node managed scripts', () =
   const s = {
     hooks: {
       SessionStart: [{ hooks: [
-        { type: 'command', command: 'node /abs/hooks/caveman-activate.js' },
+        { type: 'command', command: 'node /abs/hooks/flint-activate.js' },
         { type: 'command', command: 'node /abs/hooks/some-user-hook.js' },
       ] }],
     },
   };
   const n = SETTINGS.rewriteLegacyManagedHookCommands(s, '/usr/local/bin/node');
   assert.equal(n, 1);
-  assert.match(s.hooks.SessionStart[0].hooks[0].command, /"\/usr\/local\/bin\/node" "\/abs\/hooks\/caveman-activate\.js"/);
+  assert.match(s.hooks.SessionStart[0].hooks[0].command, /"\/usr\/local\/bin\/node" "\/abs\/hooks\/flint-activate\.js"/);
   assert.equal(s.hooks.SessionStart[0].hooks[1].command, 'node /abs/hooks/some-user-hook.js');
 });
 
@@ -159,7 +159,7 @@ test('rewriteLegacyManagedHookCommands ignores already-absolute node commands', 
   const s = {
     hooks: {
       SessionStart: [{ hooks: [
-        { type: 'command', command: '"/usr/local/bin/node" "/abs/hooks/caveman-activate.js"' },
+        { type: 'command', command: '"/usr/local/bin/node" "/abs/hooks/flint-activate.js"' },
       ] }],
     },
   };

@@ -4,15 +4,15 @@ __pycache__/
 *.pyc
 .venv/
 .env.local
-/caveman-compress.md
-**/.caveman/
+/flint-compress.md
+**/.flint/
 **/.DS_Store
 .claude/worktrees/
 evals/snapshots/*.html
 evals/snapshots/*.png
-context/refs/research-brief-caveman-code-efficiency.md
-/.caveman/
+context/refs/research-brief-flint-code-efficiency.md
+/.flint/
 
 # Build artifacts
 dist/*
-!dist/caveman.skill
+!dist/flint.skill

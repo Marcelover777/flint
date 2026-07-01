@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { savingsModel } = require('../../src/hooks/caveman-stats.js');
+const { savingsModel } = require('../../src/hooks/flint-stats.js');
 
 test('savingsModel falls back to config target model when the log has no model', () => {
   const r = savingsModel({ outputTokens: 1000, mode: 'full', model: null });

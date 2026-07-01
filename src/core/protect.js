@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 
-const SENTINEL_PREFIX = '__CAVEMAN_PROTECTED_';
+const SENTINEL_PREFIX = '__FLINT_PROTECTED_';
 
 function sha256(value) {
   return crypto.createHash('sha256').update(String(value)).digest('hex');

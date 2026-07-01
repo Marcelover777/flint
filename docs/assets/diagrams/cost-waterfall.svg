@@ -12,10 +12,10 @@
   <text x="245" y="455" fill="#c9d3de" font-size="14" font-weight="600" text-anchor="middle">Sem compressão</text>
   <text x="245" y="475" fill="#8b949e" font-size="12" text-anchor="middle">4.000 ctx · 1.000 out</text>
 
-  <!-- bar 2: caveman -->
+  <!-- bar 2: flint -->
   <rect x="405" y="242" width="150" height="188" rx="6" fill="#9a6a2f"/>
   <text x="480" y="227" fill="#f0b860" font-size="22" font-weight="800" text-anchor="middle">$0,0302</text>
-  <text x="480" y="455" fill="#c9d3de" font-size="14" font-weight="600" text-anchor="middle">Caveman</text>
+  <text x="480" y="455" fill="#c9d3de" font-size="14" font-weight="600" text-anchor="middle">Flint</text>
   <text x="480" y="475" fill="#8b949e" font-size="12" text-anchor="middle">só output −59,4%</text>
 
   <!-- bar 3: optimizer -->
@@ -25,7 +25,7 @@
   <text x="715" y="475" fill="#8b949e" font-size="12" text-anchor="middle">out −76,7% + docs −46%</text>
 
   <!-- deltas -->
-  <text x="715" y="360" fill="#d6ffe7" font-size="13" font-weight="700" text-anchor="middle">~45% &lt; caveman</text>
+  <text x="715" y="360" fill="#d6ffe7" font-size="13" font-weight="700" text-anchor="middle">~45% &lt; flint</text>
 
   <text x="40" y="525" fill="#6e7681" font-size="12.5">As % de economia independem do preço (compõem em qualquer modelo). A economia de contexto recorre a cada turn — os docs foram encolhidos uma vez.</text>
 </svg>

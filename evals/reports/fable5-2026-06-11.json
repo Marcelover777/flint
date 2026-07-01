@@ -5,7 +5,7 @@
   "arms": [
     "baseline",
     "terse",
-    "caveman-current-full",
+    "flint-current-full",
     "fable-micro-full",
     "fable-adaptive-full",
     "fable-lite",

@@ -1,0 +1,2 @@
+description = "Show or update Flint config"
+prompt = "Run `node src/commands/flint-config.js {{args}}`. Supported examples: `show`, `set targetModel claude-opus-4-8`, `set injection.strategy adaptive`, `set compression.defaultStrategy hybrid`."

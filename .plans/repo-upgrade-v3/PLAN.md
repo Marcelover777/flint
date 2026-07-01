@@ -20,7 +20,7 @@
 | Anthropic Tool Search Tool — `defer_loading: true` + `tool_search_tool_regex_20251119` | https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool | Surface #3: **omit** long-tail tool defs (85%+ definition-token cut) instead of only compressing them. Preserves prompt cache. |
 | Anthropic Context Editing — `clear_tool_uses_20250919` (`trigger`/`keep`/`clear_at_least`/`exclude_tools`) | https://platform.claude.com/docs/en/build-with-claude/context-editing | Surface #4: report `cleared_input_tokens` as a measured saving; ship a recommended config for long Claude Code sessions. |
 | Anthropic Prompt Caching (order tools→system→messages, 1024-tok min, 5-min TTL, byte-stable prefix) | https://platform.claude.com/docs/en/build-with-claude/prompt-caching | Surface #1/#4: keep the injected ruleset byte-stable; price re-injection at `cacheReadPerMTok` not `inputPerMTok`. |
-| Independent caveman benchmark — full ruleset (552 tok) underperformed a 6-line micro vs a **terse** baseline (net 14–21%, not 75%) | https://medium.com/@KubaGuzik/i-benchmarked-the-viral-caveman-prompt-to-save-llm-tokens-then-my-6-line-version-beat-it | Surface #1: ship/keep a **micro (~6-line) tier** as default for uncached/reinforcement; quote honest net-vs-terse numbers. |
+| Independent flint benchmark — full ruleset (552 tok) underperformed a 6-line micro vs a **terse** baseline (net 14–21%, not 75%) | https://medium.com/@KubaGuzik/i-benchmarked-the-viral-flint-prompt-to-save-llm-tokens-then-my-6-line-version-beat-it | Surface #1: ship/keep a **micro (~6-line) tier** as default for uncached/reinforcement; quote honest net-vs-terse numbers. |
 | GPTCache — semantic/exact response caching (MIT) | https://github.com/zilliztech/GPTCache | Narrow use: exact-match cache of doc-compression results by content hash (surface #2); NOT semantic caching of code answers (false-hit risk). |
 
 ### Image-generation fact-check (anti-pattern guard)
@@ -56,8 +56,8 @@ The `ANTHROPIC_API_KEY` powers bench/compress/count_tokens, NOT image generation
 ```
 npm run test:all              # expect 96/96
 git diff --check
-node src/commands/caveman-doctor.js --json
-node src/commands/caveman-bench.js --offline --report
+node src/commands/flint-doctor.js --json
+node src/commands/flint-bench.js --offline --report
 ```
 
 ---
@@ -76,22 +76,22 @@ node src/commands/caveman-bench.js --offline --report
    - Add fixtures asserting `API_KEY`/`$HOME` preserved, `NOTE`/`HTTP` compressible.
 
 2. **Stats USD fallback to `config.targetModel`** when the session log has no model.
-   - `src/hooks/caveman-stats.js` `savingsModel` (~:177): `const m = model || getTargetModel();`
-     import `getTargetModel` from `./caveman-config`. Add `pricing_source`
+   - `src/hooks/flint-stats.js` `savingsModel` (~:177): `const m = model || getTargetModel();`
+     import `getTargetModel` from `./flint-config`. Add `pricing_source`
      (`'config-default'` vs the model's `source`) to the JSON payload + footer label.
 
 3. **Symlink/atomic-safe MCP shrink cache write** — match the repo's own standard.
-   - `src/mcp-servers/caveman-shrink/cache.js:24-29`: route `saveCache` through
+   - `src/mcp-servers/flint-shrink/cache.js:24-29`: route `saveCache` through
      `src/core/atomic-write.js` `atomicWriteFile` (temp+rename) + `lstat` symlink
-     refusal like `caveman-config.js safeWriteFlag`.
+     refusal like `flint-config.js safeWriteFlag`.
 
 4. **Scope `findRecentSession` to the current project.**
-   - `src/hooks/caveman-stats.js:83-104`: compute the cwd slug (path separators →
+   - `src/hooks/flint-stats.js:83-104`: compute the cwd slug (path separators →
      `-`, e.g. `C--Users-Usuario-Documents-token-optimizer`), scan
      `projects/<slug>/` first, fall back to global-newest only if absent.
 
 **Doc references:** subagent codebase audit (findings 1,4,6,8); existing patterns in
-`src/core/atomic-write.js`, `src/hooks/caveman-config.js`.
+`src/core/atomic-write.js`, `src/hooks/flint-config.js`.
 
 **Verification checklist:**
 - `npm run test:all` green (+ new fixtures).
@@ -106,7 +106,7 @@ node src/commands/caveman-bench.js --offline --report
 ## Phase 2 — Compression power-ups (raise ratio without losing fidelity)
 
 1. **Split prose runs from fenced-code runs inside a section.**
-   - `src/core/markdown-sections.js:33-49` (consumed at `caveman-compress.js:372`):
+   - `src/core/markdown-sections.js:33-49` (consumed at `flint-compress.js:372`):
      after heading split, sub-split each body at `/(```|~~~)[\s\S]*?\1/`; emit prose
      runs and code runs as separate entries (code runs returned verbatim — already
      byte-exact via `protectSegments`). Keep exact offsets so
@@ -116,7 +116,7 @@ node src/commands/caveman-bench.js --offline --report
      LLM gate now measures prose runs alone.
 
 2. **Optional LLMLingua-2 compression candidate, gated by the validator.**
-   - New optional backend in `src/commands/caveman-compress.js` compress path:
+   - New optional backend in `src/commands/flint-compress.js` compress path:
      run LLMLingua-2 (`compress_prompt`, opt-in flag, local) → restore protected
      spans → `validateCompression(..., {strict})` → accept ONLY if it passes AND is
      shorter than the local result, else fall back. Source: github.com/microsoft/LLMLingua.
@@ -127,11 +127,11 @@ node src/commands/caveman-bench.js --offline --report
    - Make the per-turn reinforcement string (`src/hooks/prompt-policy.js`
      `reinforcementText`) and the uncached injection use the ~6-line micro form;
      reserve the full `SKILL.md` ruleset for cached SessionStart where input
-     overhead amortizes. Source: caveman benchmark (Phase 0).
+     overhead amortizes. Source: flint benchmark (Phase 0).
    - Update the eval harness to choose full-vs-micro by **net** tokens
      (injection input + output) vs the **terse** arm, not baseline.
 
-**Verification:** re-run `caveman-bench --offline` and a budgeted
+**Verification:** re-run `flint-bench --offline` and a budgeted
 `--online --model claude-opus-4-8 --max-spend 1`; compare `mixed-code.md` and
 prose ratios pre/post; 0 fidelity failures; tests green.
 
@@ -143,7 +143,7 @@ never ship its raw output. Don't quote new ratios until measured.
 ## Phase 3 — MCP surface expansion (biggest token sink)
 
 1. **Handle JSON-RPC batch responses.**
-   - `src/mcp-servers/caveman-shrink/transform.js:65-66` + `index.js:59-69`:
+   - `src/mcp-servers/flint-shrink/transform.js:65-66` + `index.js:59-69`:
      detect `Array.isArray(message)` and map each element through
      `transformResponse(el, methodFor(el.id), opts)` using the existing `pending`
      id→method map. Today a batch passes through uncompressed (verified).
@@ -183,7 +183,7 @@ compression default-off + validator-gated; preserve `inputSchema` byte-exact.
 ## Phase 4 — Measurement & honesty
 
 1. **Mode-keyed savings from a committed benchmark** (replaces hardcoded `{full:0.65}`).
-   - `src/hooks/caveman-stats.js:73`: load `benchmarks/results/output-savings.json`
+   - `src/hooks/flint-stats.js:73`: load `benchmarks/results/output-savings.json`
      at init (embedded `{full:0.65}` as fallback). Populate ONLY measured modes from
      real runs (pull `full`/`ultra` means from `evals/reports/*online.json`); leave
      unmeasured modes null. Gives `benchmarks/results/` a real purpose.
@@ -225,9 +225,9 @@ report's `fidelity_verdict` is computed, not hardcoded; numbers trace to real ru
 
 | # | Title | Shows | Format | Placement |
 |---|---|---|---|---|
-| 1 | Before/After token cut | Normal vs caveman answer, token counts, % saved (real `benchmarks/` numbers) | SVG→PNG | README hero + PDF §1 (recreate as SVG source; `hero.png` exists) |
-| 2 | Compression pipeline | prose → deterministic rules → optional hybrid LLM → validation gate (headings/code/URLs/paths/numbers) → repair ≤1 → output + `.caveman` backup | SVG→PNG | PDF "How it works" + README What-You-Get |
-| 3 | System architecture | SessionStart/UserPromptSubmit hooks ↔ `.caveman-active` flag ↔ statusline; install path | SVG→PNG | PDF Architecture + CONTRIBUTING |
+| 1 | Before/After token cut | Normal vs flint answer, token counts, % saved (real `benchmarks/` numbers) | SVG→PNG | README hero + PDF §1 (recreate as SVG source; `hero.png` exists) |
+| 2 | Compression pipeline | prose → deterministic rules → optional hybrid LLM → validation gate (headings/code/URLs/paths/numbers) → repair ≤1 → output + `.flint` backup | SVG→PNG | PDF "How it works" + README What-You-Get |
+| 3 | System architecture | SessionStart/UserPromptSubmit hooks ↔ `.flint-active` flag ↔ statusline; install path | SVG→PNG | PDF Architecture + CONTRIBUTING |
 | 4 | 4-surfaces map | output / context / MCP metadata / measurement, each with its mechanism | SVG→PNG | PDF §3 + README |
 | 5 | Cost-stacking waterfall | output saved → cumulative $ over N turns at verified Opus 4.8 $5/$25 | SVG→PNG | PDF "Why it pays" + README near benchmark table |
 | 6 | Intensity ladder | 6 modes on a compression-vs-fidelity axis | SVG→PNG | PDF Modes + README |
@@ -235,7 +235,7 @@ report's `fidelity_verdict` is computed, not hardcoded; numbers trace to real ru
 **New PDF (`Token-Optimizer-Guia.pdf`, local, NOT committed):** rebuild the existing
 13-page guide with: embedded diagrams 1–6 as numbered figures with one-line
 takeaway captions; one sans body + one mono face; orange accent used sparingly;
-figure/caption page-break safety; a **prominent "vs original caveman" section**
+figure/caption page-break safety; a **prominent "vs original flint" section**
 (already §9 — keep + reference diagram 4); all numbers at verified Opus 4.8 $5/$25.
 Render with `chrome --headless=new --no-pdf-header-footer --print-to-pdf`.
 
@@ -260,8 +260,8 @@ technical diagrams; no image-gen API claims; PDF not committed to git.
    - `git grep -nE "claude-fable-5" -- src commands skills plugins` → only pricing/back-compat.
    - `git grep -niE "anthropic.*generat.*image|generate.*image.*anthropic"` → none.
    - `git grep -nE "\$15/M|\$75|1\.5× Fable"` → none.
-3. `node src/commands/caveman-doctor.js --json` — no critical warnings.
-4. `node src/commands/caveman-bench.js --offline --report`; budgeted
+3. `node src/commands/flint-doctor.js --json` — no critical warnings.
+4. `node src/commands/flint-bench.js --offline --report`; budgeted
    `--online --model claude-opus-4-8 --max-spend 1` (hard cap $15) — 0 fidelity failures.
 5. Visual check: read each rendered PNG + the final PDF page images.
 6. Commit code/docs (NOT the PDF, NOT `.plans/`); push; cut `v3.0` release with

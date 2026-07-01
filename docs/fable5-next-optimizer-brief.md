@@ -1,6 +1,6 @@
 # Fable 5 Next Optimization Brief
 
-Use the current repository state as baseline, not upstream Caveman.
+Use the current repository state as baseline, not upstream Flint.
 
 Current baseline:
 - branch: `codex/fable5-optimizer`
@@ -17,11 +17,11 @@ Current baseline:
 
 Maximize additional token and cost reduction from the current V1 implementation while preserving maximum technical quality.
 
-This is not a comparison against original Caveman. Improve from the current V1 branch.
+This is not a comparison against original Flint. Improve from the current V1 branch.
 
 Primary target:
 - at least 40% additional total-token-cost reduction versus current V1 on representative Claude Code/Fable sessions.
-- at least 60% visible output-token reduction versus normal non-Caveman mode.
+- at least 60% visible output-token reduction versus normal non-Flint mode.
 - push beyond those targets wherever safe. Prefer maximum safe savings over conservative minimum savings.
 
 Quality target:
@@ -29,14 +29,14 @@ Quality target:
 - no altered code blocks, identifiers, API names, paths, URLs, env vars, numbers, dates, versions, error strings, schemas, or tool-call payloads
 - no broken markdown structure
 - no unsafe compression of secrets or sensitive files
-- no regression in install paths, hooks, skills, MCP shrink, opencode commands, or Cavecrew contracts
+- no regression in install paths, hooks, skills, MCP shrink, opencode commands, or Flint-crew contracts
 
 ## Optimization Surfaces
 
 Improve all four surfaces together:
 
 1. Output compression
-   - make Caveman/Fable output more compact without becoming ambiguous
+   - make Flint/Fable output more compact without becoming ambiguous
    - prefer direct answer, terse reasoning, compact bullets, minimal prose
    - keep normal prose for safety, irreversible actions, or ambiguity
 
@@ -84,7 +84,7 @@ Improve evals:
 Improve success metrics:
 - current V1 is baseline
 - success is measured as additional reduction from current V1
-- normal non-Caveman is only used to show absolute output reduction
+- normal non-Flint is only used to show absolute output reduction
 - report p50 and worst-case, not only average
 
 ## Acceptance Criteria
@@ -92,8 +92,8 @@ Improve success metrics:
 Must pass:
 - `npm run test:all`
 - `git diff --check`
-- `/caveman-doctor --json` equivalent: `node src/commands/caveman-doctor.js --json`
-- offline bench: `node src/commands/caveman-bench.js --offline --report`
+- `/flint-doctor --json` equivalent: `node src/commands/flint-doctor.js --json`
+- offline bench: `node src/commands/flint-bench.js --offline --report`
 - budgeted online smoke when `ANTHROPIC_API_KEY` exists
 
 Compression acceptance:
@@ -117,7 +117,7 @@ If targets are not met, report the blocker precisely and propose the next highes
 
 ## Constraints
 
-- Do not remove Caveman voice.
+- Do not remove Flint voice.
 - Do not add heavy dependencies unless tests prove built-ins are insufficient.
 - LLM compression remains opt-in.
 - Local deterministic compression remains safe default.

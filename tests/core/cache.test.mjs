@@ -9,7 +9,7 @@ const require = createRequire(import.meta.url);
 const { loadCache, saveCache, cacheKey, putCacheEntry, getCacheEntry } = require('../../src/core/cache.js');
 
 test('cache stores and reads entries', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'caveman-cache-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'flint-cache-'));
   const file = path.join(dir, 'cache.json');
   const cache = loadCache(file);
   const key = cacheKey({ a: 1 });

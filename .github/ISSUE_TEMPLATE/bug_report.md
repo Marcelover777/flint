@@ -1,20 +1,20 @@
 ---
 name: Bug report
-about: Caveman speak wrong or break
+about: Flint speak wrong or break
 labels: bug
 ---
 
 **What happen**
-<!-- What caveman do wrong -->
+<!-- What flint do wrong -->
 
 **Expected**
-<!-- What caveman should do -->
+<!-- What flint should do -->
 
 **Before/after example**
 ```
 Input: [your prompt]
-Got:   [what caveman said]
-Want:  [what caveman should say]
+Got:   [what flint said]
+Want:  [what flint should say]
 ```
 
 **Platform**

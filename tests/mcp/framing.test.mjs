@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { JsonRpcFramer } = require('../../src/mcp-servers/caveman-shrink/framing.js');
+const { JsonRpcFramer } = require('../../src/mcp-servers/flint-shrink/framing.js');
 
 test('parses newline JSON', () => {
   const framer = new JsonRpcFramer({ mode: 'auto' });

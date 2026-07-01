@@ -1,8 +1,8 @@
 # Fable 5 Optimizer V2 — Delivery Report (2026-06-11)
 
 Baseline for every comparison: **current V1 branch** (`codex/fable5-optimizer`,
-commit `03b8136`), not upstream Caveman. Online numbers come from two budgeted
-runs of `node src/commands/caveman-bench.js --online` against `claude-fable-5`
+commit `03b8136`), not upstream Flint. Online numbers come from two budgeted
+runs of `node src/commands/flint-bench.js --online` against `claude-fable-5`
 (real API usage, priced via `src/core/pricing.js`).
 
 ## Spend
@@ -16,7 +16,7 @@ runs of `node src/commands/caveman-bench.js --online` against `claude-fable-5`
 Committed snapshot: `evals/reports/fable5-2026-06-11-online.json` (run 2,
 matches shipped MICRO.md).
 
-## Surface 1 — Visible output vs normal (no-caveman) mode
+## Surface 1 — Visible output vs normal (no-flint) mode
 
 6 prompts (EN dev, PT-BR, agentic coding), 800-token output cap. Baseline hit
 the cap on most prompts, so reductions below are **underestimates**.
@@ -74,7 +74,7 @@ No behavior change. `inputSchema` preserved by default, requests and
 
 ## Headline: additional total-token-cost reduction vs V1
 
-Model: representative session where caveman-affected cost = compressed project
+Model: representative session where flint-affected cost = compressed project
 docs re-sent in context + visible output, priced at Fable 5 ($10/M in, $50/M
 out). Per turn, 4,000 baseline doc tokens + measured output arms.
 
@@ -92,9 +92,9 @@ p50 and worst-case, not just averages.
 **Precise blocker:** the two compressible surfaces are now both deep into
 diminishing returns — output is already ~70% below normal and doc prose ~50%
 smaller — while the largest cost block in real Claude Code sessions (tool
-results and conversation history) is untouched by caveman.
+results and conversation history) is untouched by flint.
 
-**Next highest-leverage change:** extend the caveman-shrink MCP middleware from
+**Next highest-leverage change:** extend the flint-shrink MCP middleware from
 `*/list` responses to `tools/call` *results* (read-only, method-aware, same
 protect/validate pipeline as doc compression), plus cache-aware injection so
 the SessionStart ruleset lands in the prompt-cache prefix. That surface is
@@ -108,12 +108,12 @@ the SessionStart ruleset lands in the prompt-cache prefix. That surface is
   taxonomy, PT-BR rules, spend guard, p50/worst summaries).
 - Secret fixtures abort before any LLM call; `--local-only` makes no network
   call; `--check` writes nothing; `--restore` round-trip verified.
-- Caveman voice preserved in SKILL.md/README; no new dependencies; LLM
+- Flint voice preserved in SKILL.md/README; no new dependencies; LLM
   compression remains opt-in; local deterministic path remains the default.
 
 ## Addendum — fidelity hardening pass (same day)
 
-An in-chat quality review of Fable 5 (high effort) under caveman found two
+An in-chat quality review of Fable 5 (high effort) under flint found two
 fidelity gaps, both fixed and re-validated online (~$0.24, session total
 ~$1.55 of $15):
 

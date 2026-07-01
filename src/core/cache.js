@@ -5,7 +5,7 @@ const { sha256 } = require('./protect');
 const { atomicWriteFile } = require('./atomic-write');
 
 function defaultCachePath(kind = 'compress') {
-  return path.join(os.homedir(), '.cache', 'caveman', `${kind}-v1.json`);
+  return path.join(os.homedir(), '.cache', 'flint', `${kind}-v1.json`);
 }
 
 function loadCache(filePath) {

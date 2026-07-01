@@ -1,7 +1,7 @@
-// caveman — JSONC-tolerant settings.json read/write + defensive hook validation.
+// flint — JSONC-tolerant settings.json read/write + defensive hook validation.
 //
 // Lifted in spirit from gsd-build/get-shit-done's stripJsonComments + readSettings.
-// Reused by bin/install.js and (optionally) by hooks/caveman-activate.js so a
+// Reused by bin/install.js and (optionally) by hooks/flint-activate.js so a
 // commented settings.json no longer crashes the installer or the runtime hooks.
 //
 // Public API:
@@ -9,9 +9,9 @@
 //   writeSettings(path, obj)       → atomic write with newline
 //   stripJsonComments(src)         → string with // and /* */ stripped (string-aware)
 //   validateHookFields(settings)   → mutates: drops malformed hook entries
-//   hasCavemanHook(settings, ev)   → idempotency probe
+//   hasFlintHook(settings, ev)   → idempotency probe
 //   addCommandHook(settings, ev, opts) → no-op if substring marker already present
-//   removeCavemanHooks(settings)   → uninstall helper
+//   removeFlintHooks(settings)   → uninstall helper
 //
 // Pure stdlib, CommonJS, Node ≥14.
 
@@ -71,14 +71,14 @@ function readSettings(p) {
   let raw;
   try { raw = fs.readFileSync(p, 'utf8'); }
   catch (e) {
-    process.stderr.write(`caveman: cannot read ${p}: ${e.message}\n`);
+    process.stderr.write(`flint: cannot read ${p}: ${e.message}\n`);
     return null;
   }
   if (!raw.trim()) return {};
   try { return JSON.parse(raw); } catch (_) { /* fall through to JSONC */ }
   try { return JSON.parse(stripJsonComments(raw)); }
   catch (e) {
-    process.stderr.write(`caveman: warning — ${p} is not valid JSON or JSONC: ${e.message}\n`);
+    process.stderr.write(`flint: warning — ${p} is not valid JSON or JSONC: ${e.message}\n`);
     return null;
   }
 }
@@ -124,7 +124,7 @@ function validateHookFields(settings) {
 }
 
 // ── Idempotency probe ──────────────────────────────────────────────────────
-function hasCavemanHook(settings, event, marker = 'caveman') {
+function hasFlintHook(settings, event, marker = 'flint') {
   const arr = settings && settings.hooks && settings.hooks[event];
   if (!Array.isArray(arr)) return false;
   return arr.some(e =>
@@ -141,7 +141,7 @@ function addCommandHook(settings, event, opts) {
   if (!settings.hooks) settings.hooks = {};
   if (!Array.isArray(settings.hooks[event])) settings.hooks[event] = [];
   const marker = opts.marker || opts.command;
-  if (hasCavemanHook(settings, event, marker)) return false;
+  if (hasFlintHook(settings, event, marker)) return false;
   const hook = { type: 'command', command: opts.command };
   if (typeof opts.timeout === 'number') hook.timeout = opts.timeout;
   if (typeof opts.statusMessage === 'string') hook.statusMessage = opts.statusMessage;
@@ -149,12 +149,12 @@ function addCommandHook(settings, event, opts) {
   return true;
 }
 
-// ── removeCavemanHooks ────────────────────────────────────────────────────
+// ── removeFlintHooks ────────────────────────────────────────────────────
 // Strip every entry whose any hook command mentions `marker`. Empties events.
 // Tolerates malformed pre-existing settings (non-array hook lists, foreign
 // shapes) — those get dropped by validateHookFields first so we never call
 // .length / .filter on a non-array.
-function removeCavemanHooks(settings, marker = 'caveman') {
+function removeFlintHooks(settings, marker = 'flint') {
   if (!settings || !settings.hooks) return 0;
   validateHookFields(settings);
   if (!settings.hooks) return 0; // validate may have deleted the whole tree
@@ -178,13 +178,13 @@ function removeCavemanHooks(settings, marker = 'caveman') {
 // absolute node path) and the basename is one of ours, rewrite to use
 // `absoluteNode` so GUI launchers with minimal PATH still find Node. Only
 // touches commands matching the exact bare-node shape — won't false-positive
-// on user-authored hooks that just happen to mention "caveman".
+// on user-authored hooks that just happen to mention "flint".
 const MANAGED_HOOK_BASENAMES = new Set([
   'prompt-policy.js',
-  'caveman-activate.js',
-  'caveman-mode-tracker.js',
-  'caveman-stats.js',
-  'caveman-statusline.sh',
+  'flint-activate.js',
+  'flint-mode-tracker.js',
+  'flint-stats.js',
+  'flint-statusline.sh',
 ]);
 function rewriteLegacyManagedHookCommands(settings, absoluteNode) {
   if (!settings || !settings.hooks || !absoluteNode) return 0;
@@ -219,9 +219,9 @@ module.exports = {
   readSettings,
   writeSettings,
   validateHookFields,
-  hasCavemanHook,
+  hasFlintHook,
   addCommandHook,
-  removeCavemanHooks,
+  removeFlintHooks,
   rewriteLegacyManagedHookCommands,
   claudeConfigDir,
   MANAGED_HOOK_BASENAMES,

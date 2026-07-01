@@ -34,7 +34,7 @@ const RULES = [
   ['going_forward', /,?\s*going forward\b/gi, ''],
   ['make_sure_to', /\bmake sure to\b/gi, 'ensure'],
   ['utilize', /\butili[sz](e[sd]?|ing)\b/gi, (m, tail) => ({ e: 'use', es: 'uses', ed: 'used', ing: 'using' })[tail.toLowerCase()] || 'use'],
-  // Extended caveman rules — high-frequency, meaning-preserving rewrites.
+  // Extended flint rules — high-frequency, meaning-preserving rewrites.
   ['for_the_purpose_of', /\bfor the purpose of\b/gi, 'for'],
   ['with_the_exception_of', /\bwith the exception of\b/gi, 'except'],
   ['in_the_context_of', /\bin the context of\b/gi, 'in'],
@@ -67,7 +67,7 @@ const RULES = [
   ['ctr_are_not', /\bare not\b/g, "aren't"],
   ['ctr_it_is', /\bit is\b/g, "it's"],
   ['ctr_that_is', /\bthat is\b(?!,)/g, "that's"],
-  // Portuguese (PT-BR) phrase rewrites — same caveman intent, same safety bar.
+  // Portuguese (PT-BR) phrase rewrites — same flint intent, same safety bar.
   ['pt_devido_fato', /\bdevido ao fato de que\b/gi, 'porque'],
   ['pt_a_fim_de', /\ba fim de\b/gi, 'para'],
   ['pt_neste_momento', /\bneste momento\b/gi, 'agora'],

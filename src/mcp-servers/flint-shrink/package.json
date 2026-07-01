@@ -1,0 +1,36 @@
+{
+  "name": "flint-shrink",
+  "version": "0.1.0",
+  "description": "MCP proxy that compresses prose fields (tool descriptions, etc.) using flint rules. Same accuracy, fewer context tokens.",
+  "license": "MIT",
+  "homepage": "https://github.com/Marcelover777/flint",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Marcelover777/flint.git",
+    "directory": "src/mcp-servers/flint-shrink"
+  },
+  "author": "Marcelover777",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "flint",
+    "proxy",
+    "tokens"
+  ],
+  "main": "compress.js",
+  "bin": {
+    "flint-shrink": "index.js"
+  },
+  "files": [
+    "index.js",
+    "compress.js",
+    "framing.js",
+    "transform.js",
+    "cache.js",
+    "README.md"
+  ],
+  "contributors": [
+    "Julius Brussee (caveman upstream, MIT)"
+  ]
+}
