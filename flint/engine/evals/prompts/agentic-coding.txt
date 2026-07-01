@@ -1,0 +1,2 @@
+You need to modify two files, run tests, and summarize risk. Keep output compact but actionable.
+A subagent reports 40 findings. Produce main-thread summary with only blockers and next steps.

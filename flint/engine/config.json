@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "defaultMode": "full",
+  "targetModel": "claude-fable-5",
+  "injection": {
+    "strategy": "adaptive",
+    "sessionStart": "micro",
+    "reinforcement": "adaptive",
+    "reinforceFirstNTurns": 2,
+    "reinforceEveryNTurns": 6,
+    "afterLongOutputTokens": 2500
+  },
+  "compression": {
+    "defaultStrategy": "hybrid",
+    "strict": true,
+    "localFirst": true,
+    "llmEnabled": false,
+    "llmModel": "claude-sonnet-4-6",
+    "minLocalSavingsToSkipLLM": 0.35,
+    "cache": true,
+    "sourceSplit": true
+  },
+  "security": {
+    "secretScan": true,
+    "entropyScan": true,
+    "abortOnSecret": true,
+    "allowLLMForSensitiveFiles": false
+  },
+  "stats": {
+    "useTokenCountApi": true,
+    "fallbackTokenizer": "chars_approx",
+    "historySchema": 2
+  }
+}

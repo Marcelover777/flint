@@ -1,0 +1,2 @@
+Design a migration plan from a single Express server to separate API and worker processes. Include risks and rollout checks.
+Compare local deterministic compression with LLM-based compression for developer memory files.

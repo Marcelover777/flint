@@ -1,12 +1,14 @@
 #!/usr/bin/env node
-// caveman — shared configuration resolver
+// flint — shared configuration resolver (standalone, project-local).
+//
+// The whole install lives inside the project: engine at <project>/.claude/flint,
+// config at <engine>/config.json, runtime state at <engine>/state. Nothing is
+// read from or written to ~/.claude, XDG dirs, or APPDATA — flint is fully
+// detached from the upstream caveman install layout.
 //
 // Resolution order for default mode:
-//   1. CAVEMAN_DEFAULT_MODE environment variable
-//   2. Config file defaultMode field:
-//      - $XDG_CONFIG_HOME/caveman/config.json (any platform, if set)
-//      - ~/.config/caveman/config.json (macOS / Linux fallback)
-//      - %APPDATA%\caveman\config.json (Windows fallback)
+//   1. FLINT_DEFAULT_MODE environment variable
+//   2. <engine>/config.json defaultMode field
 //   3. 'full'
 
 const fs = require('fs');
@@ -15,17 +17,16 @@ const os = require('os');
 
 const VALID_MODES = [
   'off', 'lite', 'full', 'ultra',
-  'wenyan-lite', 'wenyan', 'wenyan-full', 'wenyan-ultra',
   'commit', 'review', 'compress'
 ];
 
 const DEFAULT_CONFIG = {
   schema_version: 1,
   defaultMode: 'full',
-  // Fable 5 (claude-fable-5) is Anthropic's current Mythos-class model — the
-  // earlier "retired" note was wrong. At $10/$50 per MTok its output costs 2x
-  // Opus 4.8, so savings are worth double there. Override with
-  // CAVEMAN_TARGET_MODEL or config if your sessions run another model.
+  // Fable 5 (claude-fable-5) is Anthropic's current Mythos-class model and the
+  // model this install optimizes for. At $10/$50 per MTok its output is 2x the
+  // price of Opus 4.8 — every output token flint cuts is worth double here.
+  // Override with FLINT_TARGET_MODEL or config.
   targetModel: 'claude-fable-5',
   injection: {
     strategy: 'adaptive',
@@ -34,7 +35,6 @@ const DEFAULT_CONFIG = {
     reinforceFirstNTurns: 2,
     reinforceEveryNTurns: 6,
     afterLongOutputTokens: 2500,
-    statuslineNudge: 'once',
   },
   compression: {
     defaultStrategy: 'hybrid',
@@ -56,14 +56,6 @@ const DEFAULT_CONFIG = {
     abortOnSecret: true,
     allowLLMForSensitiveFiles: false,
   },
-  mcpShrink: {
-    enabled: true,
-    fields: ['description'],
-    topLevelOnly: true,
-    compressNestedSchemas: false,
-    cache: true,
-    framing: 'auto',
-  },
   stats: {
     useTokenCountApi: true,
     fallbackTokenizer: 'chars_approx',
@@ -71,21 +63,23 @@ const DEFAULT_CONFIG = {
   },
 };
 
+// Engine root = the .claude/flint directory this file lives under.
+function getEngineRoot() {
+  return path.resolve(__dirname, '..');
+}
+
 function getConfigDir() {
-  if (process.env.XDG_CONFIG_HOME) {
-    return path.join(process.env.XDG_CONFIG_HOME, 'caveman');
-  }
-  if (process.platform === 'win32') {
-    return path.join(
-      process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'),
-      'caveman'
-    );
-  }
-  return path.join(os.homedir(), '.config', 'caveman');
+  return process.env.FLINT_CONFIG_DIR || getEngineRoot();
 }
 
 function getConfigPath() {
   return path.join(getConfigDir(), 'config.json');
+}
+
+// Runtime state (mode flag, prompt state, stats history, statusline suffix).
+// Lives inside the engine so the install is self-contained and per-project.
+function getStateDir() {
+  return process.env.FLINT_STATE_DIR || path.join(getEngineRoot(), 'state');
 }
 
 function isPlainObject(value) {
@@ -108,7 +102,6 @@ function mergeConfig(base, override) {
 function normalizeMode(mode, fallback = 'full') {
   if (!mode) return fallback;
   const raw = String(mode).toLowerCase();
-  if (raw === 'wenyan-full') return 'wenyan';
   return VALID_MODES.includes(raw) ? raw : fallback;
 }
 
@@ -118,16 +111,12 @@ function normalizeConfig(config) {
   if (!out.targetModel || typeof out.targetModel !== 'string') out.targetModel = DEFAULT_CONFIG.targetModel;
   if (!['micro', 'full'].includes(out.injection.sessionStart)) out.injection.sessionStart = DEFAULT_CONFIG.injection.sessionStart;
   if (!['adaptive', 'always', 'off'].includes(out.injection.reinforcement)) out.injection.reinforcement = DEFAULT_CONFIG.injection.reinforcement;
-  if (!['once', 'always', 'off'].includes(out.injection.statuslineNudge)) out.injection.statuslineNudge = DEFAULT_CONFIG.injection.statuslineNudge;
   for (const key of ['reinforceFirstNTurns', 'reinforceEveryNTurns', 'afterLongOutputTokens']) {
     if (!Number.isFinite(Number(out.injection[key])) || Number(out.injection[key]) < 0) {
       out.injection[key] = DEFAULT_CONFIG.injection[key];
     } else {
       out.injection[key] = Number(out.injection[key]);
     }
-  }
-  if (!Array.isArray(out.mcpShrink.fields) || out.mcpShrink.fields.length === 0) {
-    out.mcpShrink.fields = [...DEFAULT_CONFIG.mcpShrink.fields];
   }
   return out;
 }
@@ -142,30 +131,18 @@ function readConfigFile() {
 
 function envConfig() {
   const out = {};
-  if (process.env.CAVEMAN_DEFAULT_MODE) out.defaultMode = process.env.CAVEMAN_DEFAULT_MODE;
-  if (process.env.CAVEMAN_TARGET_MODEL) out.targetModel = process.env.CAVEMAN_TARGET_MODEL;
-  if (process.env.CAVEMAN_INJECTION_SESSION_START) {
-    out.injection = { ...(out.injection || {}), sessionStart: process.env.CAVEMAN_INJECTION_SESSION_START };
+  if (process.env.FLINT_DEFAULT_MODE) out.defaultMode = process.env.FLINT_DEFAULT_MODE;
+  if (process.env.FLINT_TARGET_MODEL) out.targetModel = process.env.FLINT_TARGET_MODEL;
+  if (process.env.FLINT_INJECTION_SESSION_START) {
+    out.injection = { ...(out.injection || {}), sessionStart: process.env.FLINT_INJECTION_SESSION_START };
   }
-  if (process.env.CAVEMAN_REINFORCEMENT) {
-    out.injection = { ...(out.injection || {}), reinforcement: process.env.CAVEMAN_REINFORCEMENT };
+  if (process.env.FLINT_REINFORCEMENT) {
+    out.injection = { ...(out.injection || {}), reinforcement: process.env.FLINT_REINFORCEMENT };
   }
-  if (process.env.CAVEMAN_COMPRESSION_LLM_ENABLED) {
+  if (process.env.FLINT_COMPRESSION_LLM_ENABLED) {
     out.compression = {
       ...(out.compression || {}),
-      llmEnabled: ['1', 'true', 'yes'].includes(process.env.CAVEMAN_COMPRESSION_LLM_ENABLED.toLowerCase()),
-    };
-  }
-  if (process.env.CAVEMAN_SHRINK_FIELDS) {
-    out.mcpShrink = {
-      ...(out.mcpShrink || {}),
-      fields: process.env.CAVEMAN_SHRINK_FIELDS.split(',').map(s => s.trim()).filter(Boolean),
-    };
-  }
-  if (process.env.CAVEMAN_SHRINK_NESTED_SCHEMA) {
-    out.mcpShrink = {
-      ...(out.mcpShrink || {}),
-      compressNestedSchemas: process.env.CAVEMAN_SHRINK_NESTED_SCHEMA === '1',
+      llmEnabled: ['1', 'true', 'yes'].includes(process.env.FLINT_COMPRESSION_LLM_ENABLED.toLowerCase()),
     };
   }
   return out;
@@ -191,13 +168,9 @@ function getStatsConfig() {
   return loadConfig().stats;
 }
 
-function getMcpShrinkConfig() {
-  return loadConfig().mcpShrink;
-}
-
 function getDefaultMode() {
   // 1. Environment variable (highest priority)
-  const envMode = process.env.CAVEMAN_DEFAULT_MODE;
+  const envMode = process.env.FLINT_DEFAULT_MODE;
   if (envMode && VALID_MODES.includes(envMode.toLowerCase())) {
     return envMode.toLowerCase();
   }
@@ -220,7 +193,7 @@ function getDefaultMode() {
 // Symlink-safe flag file write.
 // Uses O_NOFOLLOW where available, writes atomically via temp + rename with
 // 0600 permissions. Protects against local attackers replacing the predictable
-// flag path (~/.claude/.caveman-active) with a symlink to clobber other files.
+// flag path (~/.claude/.flint-active) with a symlink to clobber other files.
 //
 // When the parent directory is itself a symlink (legitimate pattern: ~/.claude
 // symlinked to another drive or shared config dir), resolves through to the
@@ -233,12 +206,14 @@ function getDefaultMode() {
 // path lives under the user's home directory.
 //
 // The flag file itself must never be a symlink (that's the actual clobber vector).
+// Note: the state dir here lives under the project (.claude/flint/state), which
+// sits under the user's home on this machine, so the Windows home-dir check holds.
 //
-// Set CAVEMAN_DEBUG=1 to emit stderr diagnostics when flag writes are refused.
+// Set FLINT_DEBUG=1 to emit stderr diagnostics when flag writes are refused.
 //
 // Silent-fails on any filesystem error — the flag is best-effort.
 function safeWriteFlag(flagPath, content) {
-  const debug = process.env.CAVEMAN_DEBUG === '1';
+  const debug = process.env.FLINT_DEBUG === '1';
   try {
     const flagDir = path.dirname(flagPath);
     fs.mkdirSync(flagDir, { recursive: true });
@@ -253,12 +228,12 @@ function safeWriteFlag(flagPath, content) {
         realFlagDir = fs.realpathSync(flagDir);
         const realStat = fs.statSync(realFlagDir);
         if (!realStat.isDirectory()) {
-          if (debug) process.stderr.write(`[caveman] safeWriteFlag: symlink target ${realFlagDir} is not a directory\n`);
+          if (debug) process.stderr.write(`[flint] safeWriteFlag: symlink target ${realFlagDir} is not a directory\n`);
           return;
         }
         if (typeof process.getuid === 'function') {
           if (realStat.uid !== process.getuid()) {
-            if (debug) process.stderr.write(`[caveman] safeWriteFlag: symlink target ${realFlagDir} owned by uid ${realStat.uid}, not current user ${process.getuid()}\n`);
+            if (debug) process.stderr.write(`[flint] safeWriteFlag: symlink target ${realFlagDir} owned by uid ${realStat.uid}, not current user ${process.getuid()}\n`);
             return;
           }
         } else {
@@ -267,7 +242,7 @@ function safeWriteFlag(flagPath, content) {
           const normalizedHome = path.resolve(home);
           if (!normalizedReal.toLowerCase().startsWith(normalizedHome.toLowerCase() + path.sep) &&
               normalizedReal.toLowerCase() !== normalizedHome.toLowerCase()) {
-            if (debug) process.stderr.write(`[caveman] safeWriteFlag: symlink target ${normalizedReal} is outside home directory ${normalizedHome}\n`);
+            if (debug) process.stderr.write(`[flint] safeWriteFlag: symlink target ${normalizedReal} is outside home directory ${normalizedHome}\n`);
             return;
           }
         }
@@ -286,7 +261,7 @@ function safeWriteFlag(flagPath, content) {
       if (e.code !== 'ENOENT') return;
     }
 
-    const tempPath = path.join(realFlagDir, `.caveman-active.${process.pid}.${Date.now()}`);
+    const tempPath = path.join(realFlagDir, `.flint-active.${process.pid}.${Date.now()}`);
     const O_NOFOLLOW = typeof fs.constants.O_NOFOLLOW === 'number' ? fs.constants.O_NOFOLLOW : 0;
     const flags = fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | O_NOFOLLOW;
     let fd;
@@ -312,8 +287,8 @@ function safeWriteFlag(flagPath, content) {
 // reader — statusline, per-turn reinforcement — would slurp that content and
 // either echo it to the terminal or inject it into model context.
 //
-// MAX_FLAG_BYTES is a hard cap. The longest legitimate value is "wenyan-ultra"
-// (12 bytes); 64 leaves slack without enabling exfil.
+// MAX_FLAG_BYTES is a hard cap. The longest legitimate value is "compress"
+// (8 bytes); 64 leaves slack without enabling exfil.
 const MAX_FLAG_BYTES = 64;
 
 function readFlag(flagPath) {
@@ -351,11 +326,11 @@ function readFlag(flagPath) {
 // Symlink-safe append. Same parent-dir + symlink-target rules as safeWriteFlag,
 // but opens with O_APPEND so concurrent writers from different sessions don't
 // clobber each other. Used for the lifetime stats log
-// ($CLAUDE_CONFIG_DIR/.caveman-history.jsonl).
+// ($CLAUDE_CONFIG_DIR/.flint-history.jsonl).
 //
 // Silent-fails on any filesystem error.
 function appendFlag(filePath, line) {
-  const debug = process.env.CAVEMAN_DEBUG === '1';
+  const debug = process.env.FLINT_DEBUG === '1';
   try {
     const dir = path.dirname(filePath);
     fs.mkdirSync(dir, { recursive: true });
@@ -369,7 +344,7 @@ function appendFlag(filePath, line) {
         if (!realStat.isDirectory()) return;
         if (typeof process.getuid === 'function') {
           if (realStat.uid !== process.getuid()) {
-            if (debug) process.stderr.write(`[caveman] appendFlag: symlink target ${realDir} owned by uid ${realStat.uid}\n`);
+            if (debug) process.stderr.write(`[flint] appendFlag: symlink target ${realDir} owned by uid ${realStat.uid}\n`);
             return;
           }
         } else {
@@ -433,6 +408,8 @@ function readHistory(filePath) {
 module.exports = {
   DEFAULT_CONFIG,
   getDefaultMode,
+  getEngineRoot,
+  getStateDir,
   getConfigDir,
   getConfigPath,
   loadConfig,
@@ -443,7 +420,6 @@ module.exports = {
   getInjectionConfig,
   getCompressionConfig,
   getStatsConfig,
-  getMcpShrinkConfig,
   VALID_MODES,
   safeWriteFlag,
   readFlag,

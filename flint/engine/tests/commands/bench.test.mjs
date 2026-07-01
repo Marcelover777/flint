@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { makeSpendGuard, summarizeReductions, parseArgs, HARD_CAP_USD, DEFAULT_MAX_SPEND_USD, offlineReport } = require('../../src/commands/caveman-bench.js');
-const { pricingForModel } = require('../../src/core/pricing.js');
+const { makeSpendGuard, summarizeReductions, parseArgs, HARD_CAP_USD, DEFAULT_MAX_SPEND_USD, offlineReport } = require('../../commands/flint-bench.js');
+const { pricingForModel } = require('../../core/pricing.js');
 
 test('spend guard blocks calls that would exceed the budget', () => {
   const pricing = pricingForModel('claude-fable-5');
@@ -48,9 +48,9 @@ test('offline report includes injection overhead estimates', () => {
   assert.equal(report.mode, 'offline');
   assert.ok(report.injection_overhead.micro_full_line_tokens > 0);
   // The Fable-tuned MICRO line deliberately spends more injected tokens than
-  // the V1 line (~85 vs ~52 estimated) to carry the agent-loop rules
+  // the V1 caveman line (~85 vs ~52 estimated) to carry the agent-loop rules
   // (final-message cap, no tool narration, no code re-printing) that dominate
-  // savings in agentic sessions. Guard against runaway growth instead of
+  // savings in Claude Code sessions. Guard against runaway growth instead of
   // pinning to the V1 size.
   assert.ok(report.injection_overhead.micro_full_line_tokens <= 95);
 });

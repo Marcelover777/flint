@@ -1,0 +1,1 @@
+{"jsonrpc":"2.0","id":1,"result":{"tools":[{"name":"get_weather","description":"Sure, this tool just returns the current weather for the provided city.","inputSchema":{"type":"object"}}]}}

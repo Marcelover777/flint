@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "source": "upstream caveman claude-opus-4-8-2026-06-15-online eval (micro-full output arm); conservative carry-over for the flint fable-5 ruleset",
+  "note": "Mean per-mode OUTPUT-token savings vs a no-compression baseline. Only MEASURED modes are listed. Unmeasured modes are intentionally absent so /flint-stats reports 'no estimate' instead of inventing a number. Recalibrate by running node .claude/flint/commands/flint-bench.js --online --model claude-fable-5 (budget-guarded) and updating the measured means here.",
+  "modes": {
+    "full": 0.65
+  }
+}
