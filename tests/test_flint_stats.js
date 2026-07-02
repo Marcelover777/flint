@@ -65,7 +65,7 @@ test('shows full-mode savings estimate when flag is full', (tmp) => {
     env: { ...process.env, CLAUDE_CONFIG_DIR: claudeDir },
   });
   // 350 / 0.35 = 1000, saved = 650, ~65%
-  assert.match(out, /Est\. without flint:\s+1,000/);
+  assert.match(out, /Est\. without flint:\s+1[.,]000/);
   assert.match(out, /Est\. tokens saved:\s+650 \(~65%\)/);
 });
 
@@ -160,10 +160,10 @@ test('omits USD line when model is unknown', (tmp) => {
 
 test('priceForModel matches by prefix across point releases', () => {
   const { priceForModel } = require(path.join(ROOT, 'src', 'hooks', 'flint-stats.js'));
-  assert.strictEqual(priceForModel('claude-opus-4-7'), 75.00);
+  assert.strictEqual(priceForModel('claude-opus-4-7'), 25.00);
   assert.strictEqual(priceForModel('claude-opus-4-20250101'), 75.00);
   assert.strictEqual(priceForModel('claude-sonnet-4-7-20260315'), 15.00);
-  assert.strictEqual(priceForModel('claude-haiku-4-5'), 4.00);
+  assert.strictEqual(priceForModel('claude-haiku-4-5'), 5.00);
   assert.strictEqual(priceForModel('claude-3-5-sonnet-20241022'), 15.00);
   assert.strictEqual(priceForModel(null), null);
   assert.strictEqual(priceForModel('gpt-4'), null);
@@ -186,7 +186,7 @@ test('--share prints single-line tweetable summary', (tmp) => {
     env: { ...process.env, CLAUDE_CONFIG_DIR: claudeDir },
   });
   assert.strictEqual(out.split('\n').filter(Boolean).length, 1);
-  assert.match(out, /^⚡ Saved 650 output tokens \(~\$0\.009[78]\) across 1 turns this session — flint\.sh$/m);
+  assert.match(out, /^⚡ flint saved 650 output tokens \(~\$0\.009[78]\) across 1 turns this session$/m);
 });
 
 test('--share works with no benchmark ratio (lite mode)', (tmp) => {
@@ -199,7 +199,7 @@ test('--share works with no benchmark ratio (lite mode)', (tmp) => {
     encoding: 'utf8',
     env: { ...process.env, CLAUDE_CONFIG_DIR: claudeDir },
   });
-  assert.match(out, /^⚡ 1 turns, 200 output tokens this session — flint\.sh$/m);
+  assert.match(out, /^⚡ 1 turns, 200 output tokens this session$/m);
 });
 
 test('appends to lifetime history on each run', (tmp) => {
@@ -455,7 +455,7 @@ test('mode tracker forwards --share to stats script', (tmp) => {
   });
   const parsed = JSON.parse(out);
   assert.strictEqual(parsed.decision, 'block');
-  assert.match(parsed.reason, /^⚡ Saved 650 output tokens/);
+  assert.match(parsed.reason, /^⚡ flint saved 650 output tokens/);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

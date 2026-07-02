@@ -28,12 +28,12 @@ function parseModeCommand(prompt) {
   const parts = prompt.split(/\s+/);
   const cmd = parts[0];
   const arg = parts[1] || '';
-  if (cmd === '/flint-commit') return 'commit';
-  if (cmd === '/flint-review') return 'review';
+  if (cmd === '/flint-commit' || cmd === '/flint:flint-commit') return 'commit';
+  if (cmd === '/flint-review' || cmd === '/flint:flint-review') return 'review';
   if (cmd === '/flint-compress' || cmd === '/flint:flint-compress') return 'compress';
   if (cmd === '/flint' || cmd === '/flint:flint') {
     if (!arg) return getDefaultMode();
-    if (arg === 'off' || arg === 'stop' || arg === 'disable') return 'off';
+    if (arg === 'off' || arg === 'stop' || arg === 'disable' || arg === 'desliga') return 'off';
     if (arg === 'wenyan-full') return 'wenyan';
     if (VALID_MODES.includes(arg) && !INDEPENDENT_MODES.has(arg)) return arg;
   }
@@ -64,9 +64,14 @@ process.stdin.on('end', () => {
       return;
     }
 
-    if (/\b(activate|enable|turn on|start|talk like)\b.*\bflint\b/i.test(rawPrompt) ||
-        /\bflint\b.*\b(mode|activate|enable|turn on|start)\b/i.test(rawPrompt)) {
-      if (!/\b(stop|disable|turn off|deactivate)\b/i.test(rawPrompt)) {
+    // Natural-language activation, EN + PT-BR. `flint\b(?!-)` keeps filenames
+    // like "flint-stats.js" from counting as the product name; `para` alone is
+    // the PT preposition ("docs para o flint") and must NOT toggle anything —
+    // only imperative forms (parar/pare/para de) count.
+    if (/\b(activate|enable|turn on|start|talk like|ativa[r]?|liga[r]?|usa[r]?)\b.*\bflint\b(?!-)/i.test(rawPrompt) ||
+        /\bflint\b(?!-).*\b(mode|activate|enable|turn on|start)\b/i.test(rawPrompt) ||
+        /\bmodo flint\b/i.test(rawPrompt)) {
+      if (!/\b(stop|disable|turn off|deactivate|desativa[r]?|desliga[r]?|parar|pare|para de)\b/i.test(rawPrompt)) {
         const mode = getDefaultMode();
         if (mode !== 'off') safeWriteFlag(flagPath, mode);
       }
@@ -79,9 +84,9 @@ process.stdin.on('end', () => {
       try { fs.unlinkSync(flagPath); } catch (_) {}
     }
 
-    if (/\b(stop|disable|deactivate|turn off)\b.*\bflint\b/i.test(rawPrompt) ||
-        /\bflint\b.*\b(stop|disable|deactivate|turn off)\b/i.test(rawPrompt) ||
-        /\bnormal mode\b/i.test(rawPrompt)) {
+    if (/\b(stop|disable|deactivate|turn off|desativa[r]?|desliga[r]?|parar|pare|para de)\b.*\bflint\b(?!-)/i.test(rawPrompt) ||
+        /\bflint\b(?!-).*\b(stop|disable|deactivate|turn off)\b/i.test(rawPrompt) ||
+        /\b(normal mode|modo normal)\b/i.test(rawPrompt)) {
       try { fs.unlinkSync(flagPath); } catch (_) {}
     }
 

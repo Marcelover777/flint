@@ -41,11 +41,11 @@ test('drops filler and pleasantries', () => {
   assert.doesNotMatch(compressed, /basically/i);
 });
 
-test('drops hedging and "I will" leaders', () => {
+test('drops "I will" leaders but preserves modal hedges (semantics)', () => {
   const { compressed } = compress('I will perhaps connect to the database');
-  assert.doesNotMatch(compressed, /perhaps/i);
   assert.doesNotMatch(compressed, /^I will/i);
-  assert.match(compressed, /database/i);
+  // "perhaps" is a modal - dropping it turns a possibility into a statement.
+  assert.match(compressed, /perhaps/i);
 });
 
 test('preserves fenced code blocks verbatim', () => {

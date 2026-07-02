@@ -119,7 +119,7 @@ Useful flags:
 
 ## Token-optimizer commands
 
-These commands ship with the repo/plugin command stubs (model-aware, Opus 4.8 by default):
+These commands ship with the repo/plugin command stubs (model-aware, Fable 5 by default):
 
 | Command | What |
 |---|---|

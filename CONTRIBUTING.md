@@ -15,7 +15,7 @@ Flint like simple. Small focused PR > big rewrite.
 ## Quick orientation
 
 The repo distributes one skill (flint) plus a handful of sub-skills
-(flint-commit, flint-review, flint-compress, flint-crew-*) to many
+(flint-commit, flint-review, flint-compress, flint-crew) to many
 agents through different distribution mechanisms (Claude Code plugin, Codex
 plugin, Gemini extension, Cursor/Windsurf/Cline rule files, `npx skills` for
 the long tail). A single Node installer at `bin/install.js` detects which
@@ -60,7 +60,7 @@ on every push to `main`.
 | `plugins/flint/skills/flint/SKILL.md` | `skills/flint/SKILL.md` |
 | `plugins/flint/skills/flint-compress/{SKILL.md, scripts/}` | `skills/flint-compress/{SKILL.md, scripts/}` |
 | `plugins/flint/skills/flint-crew/SKILL.md` | `skills/flint-crew/SKILL.md` |
-| `plugins/flint/agents/flint-crew-*.md` | `agents/flint-crew-*.md` |
+| `plugins/flint/agents/flint-{scout,smith,judge}.md` | `agents/flint-{scout,smith,judge}.md` |
 | `dist/flint.skill` | ZIP of `skills/flint/` (gitignored; rebuilt by CI on each push to `main`) |
 
 `flint-commit`, `flint-review`, `flint-help`, and `flint-stats` are **not** mirrored under `plugins/flint/skills/` by CI. Claude Code reaches them through the standalone hook + skill install path and `npx skills` carries them to other agents. If you see `plugins/flint/skills/flint-stats/` checked in, treat it as a legacy hand-committed copy — the workflow in `.github/workflows/sync-skill.yml` does not touch it.
@@ -130,7 +130,7 @@ node tests/test_flint_init.js
 node tests/test_symlink_flag.js
 ```
 
-CI runs all of the above on every PR. If any test depends on a network or
+There is no test CI on this repo (the only workflow syncs SKILL.md copies) — `npm run test:all` locally is the merge gate; it now includes these legacy scripts via `test:legacy`. If any test depends on a network or
 external SDK, it must skip cleanly when the dependency is missing — never
 gate the whole suite on optional creds.
 

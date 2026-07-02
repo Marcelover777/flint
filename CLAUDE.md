@@ -113,7 +113,7 @@ What's left is the Claude Code plugin distribution (required by the plugin loade
 | `plugins/flint/skills/flint/SKILL.md` | `skills/flint/SKILL.md` |
 | `plugins/flint/skills/flint-compress/SKILL.md` (+ `scripts/`) | `skills/flint-compress/SKILL.md` (+ `scripts/`) |
 | `plugins/flint/skills/flint-crew/SKILL.md` | `skills/flint-crew/SKILL.md` |
-| `plugins/flint/agents/flint-crew-*.md` | `agents/flint-crew-*.md` |
+| `plugins/flint/agents/flint-{scout,smith,judge}.md` | `agents/flint-{scout,smith,judge}.md` |
 | `dist/flint.skill` | ZIP of `skills/flint/` directory (gitignored; rebuilt by CI on release) |
 
 Skills not in this table (`flint-commit`, `flint-review`, `flint-help`, `flint-stats`) are not mirrored into the Claude Code plugin distribution by CI. They reach Claude Code through the standalone hook + skill install path, and reach other agents via `npx skills add`. A `plugins/flint/skills/flint-stats/` directory is currently checked in as a hand-committed copy; the sync workflow does not touch it, so don't rely on edits there to propagate.
@@ -122,12 +122,12 @@ Skills not in this table (`flint-commit`, `flint-review`, `flint-help`, `flint-s
 
 ## CI sync workflow
 
-`.github/workflows/sync-skill.yml` triggers on main push when `skills/**/SKILL.md` or `agents/flint-crew-*.md` changes.
+`.github/workflows/sync-skill.yml` triggers on main push when `skills/**/SKILL.md` or `agents/flint-{scout,smith,judge}.md` changes.
 
 What it does:
 1. Copies `skills/flint/SKILL.md` and `skills/flint-crew/SKILL.md` into their `plugins/flint/skills/<name>/` mirrors so the Claude Code plugin loader sees the latest behavior.
 2. Copies `skills/flint-compress/SKILL.md` and its `scripts/` into `plugins/flint/skills/flint-compress/`.
-3. Copies `agents/flint-crew-*.md` into `plugins/flint/agents/`.
+3. Copies `agents/flint-{scout,smith,judge}.md` into `plugins/flint/agents/`.
 4. Rebuilds `dist/flint.skill` (ZIP of `skills/flint/`) for the release artifact.
 5. Commits and pushes with `[skip ci]` to avoid loops.
 

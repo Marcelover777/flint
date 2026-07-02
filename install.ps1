@@ -13,11 +13,17 @@
 # truth and constantly drifted (issue #249 was a `node -e "..."` quoting bug
 # that silently dropped the JSON merge step on every Windows install). One
 # Node script works everywhere without quoting bugs.
+#
+# iex-safety: this script must survive `irm ... | iex`, where (a) there is no
+# script file, so $MyInvocation.MyCommand.Path is $null, and (b) the automatic
+# $args variable cannot be re-declared as a param ("variable has been
+# optimized" error). Hence the $InstallArgs name and the guarded Split-Path —
+# mirrors install.sh's `${BASH_SOURCE[0]:-}` guard.
 
 [CmdletBinding()]
 param(
   [Parameter(ValueFromRemainingArguments = $true)]
-  [string[]]$Args
+  [string[]]$InstallArgs
 )
 
 $ErrorActionPreference = "Stop"
@@ -40,12 +46,15 @@ if ($nodeMajor -lt 18) {
   exit 1
 }
 
-# If we're inside the repo clone, run the local installer directly.
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$local = Join-Path $here "bin/install.js"
-if (Test-Path $local) {
-  & node $local @Args
-  exit $LASTEXITCODE
+# If we're inside the repo clone, run the local installer directly. Under
+# `irm | iex` there is no script path — skip straight to the npx branch.
+$here = if ($MyInvocation.MyCommand.Path) { Split-Path -Parent $MyInvocation.MyCommand.Path } else { $null }
+if ($here) {
+  $local = Join-Path $here "bin/install.js"
+  if (Test-Path $local) {
+    & node $local @InstallArgs
+    exit $LASTEXITCODE
+  }
 }
 
 # Curl-pipe path: delegate to npx.
@@ -58,5 +67,5 @@ if (-not $npx) {
 # Do NOT pass `--` here — npm 7+ npx already forwards trailing args to the
 # package, and a literal `--` was tripping bin/install.js's parseArgs as an
 # unknown flag.
-& npx -y "github:$Repo" @Args
+& npx -y "github:$Repo" @InstallArgs
 exit $LASTEXITCODE

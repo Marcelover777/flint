@@ -47,13 +47,27 @@ function doctor(opts = {}) {
 
   if (opts.fixStatusline) {
     fs.mkdirSync(claudeDir, { recursive: true });
+    // A settings.json that exists but doesn't parse (JSONC comments, trailing
+    // comma, corruption) must NEVER be replaced with {} — that would wipe the
+    // user's model/permissions/hooks. Refuse and tell them instead.
     let settings = {};
-    try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')); } catch (_) {}
+    if (fs.existsSync(settingsPath)) {
+      try {
+        settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      } catch (e) {
+        checks.warnings.push(`cannot --fix-statusline: ${settingsPath} is not valid JSON (${e.message}) — fix it manually.`);
+        checks.fixed_statusline = false;
+        return checks;
+      }
+    }
     const script = process.platform === 'win32'
       ? `powershell -NoProfile -ExecutionPolicy Bypass -File "${path.join(hooksDir, 'flint-statusline.ps1')}"`
       : `bash "${path.join(hooksDir, 'flint-statusline.sh')}"`;
     settings.statusLine = { type: 'command', command: script };
-    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+    // Atomic write: temp + rename, so a crash mid-write can't truncate settings.
+    const tmp = settingsPath + `.${process.pid}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(settings, null, 2) + '\n');
+    fs.renameSync(tmp, settingsPath);
     checks.statusline = 'OK';
     checks.fixed_statusline = true;
   }

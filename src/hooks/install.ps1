@@ -22,7 +22,7 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
 $ClaudeDir = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $env:USERPROFILE ".claude" }
 $HooksDir = Join-Path $ClaudeDir "hooks"
 $Settings = Join-Path $ClaudeDir "settings.json"
-$RepoUrl = "https://raw.githubusercontent.com/Marcelover777/flint/main/hooks"
+$RepoUrl = "https://raw.githubusercontent.com/Marcelover777/flint/main/src/hooks"
 
 $HookFiles = @("package.json", "flint-config.js", "prompt-policy.js", "flint-activate.js", "flint-mode-tracker.js", "flint-stats.js", "flint-statusline.sh", "flint-statusline.ps1")
 

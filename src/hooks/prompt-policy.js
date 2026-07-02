@@ -90,7 +90,9 @@ function shouldReinforce({ prompt, activeMode, config, state, transcript }) {
   const drift = scoreDrift(transcript.text);
 
   if (state.mode && state.mode !== activeMode) return { reinforce: true, reason: 'mode_changed' };
-  if (turn <= firstN) return { reinforce: true, reason: 'first_turns' };
+  // Turn 1 is skipped: the SessionStart hook injected the full MICRO line
+  // seconds earlier, so a turn-1 reminder is pure duplication (~44 tokens).
+  if (turn > 1 && turn <= firstN + 1) return { reinforce: true, reason: 'first_turns' };
   if (everyN > 0 && turn - lastReinforced >= everyN) return { reinforce: true, reason: 'interval' };
   if (CONTINUATION_RE.test(prompt || '')) return { reinforce: true, reason: 'continuation_prompt' };
   if (transcript.outputTokens >= longOutput) return { reinforce: true, reason: 'long_previous_output' };

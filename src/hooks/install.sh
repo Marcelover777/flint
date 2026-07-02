@@ -35,7 +35,7 @@ fi
 CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 HOOKS_DIR="$CLAUDE_DIR/hooks"
 SETTINGS="$CLAUDE_DIR/settings.json"
-REPO_URL="https://raw.githubusercontent.com/Marcelover777/flint/main/hooks"
+REPO_URL="https://raw.githubusercontent.com/Marcelover777/flint/main/src/hooks"
 
 HOOK_FILES=("package.json" "flint-config.js" "prompt-policy.js" "flint-activate.js" "flint-mode-tracker.js" "flint-stats.js" "flint-statusline.sh")
 

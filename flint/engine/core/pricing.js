@@ -136,7 +136,7 @@ function costForUsage(tokens, pricing) {
 
 function estimateBaseline({ tokens, modeRatio, pricing, injectionOverhead = 0 }) {
   const actual = tokens || {};
-  if (!pricing || modeRatio == null) {
+  if (modeRatio == null) {
     return {
       estimatedBaselineOutput: 0,
       estimatedSavedOutput: 0,
@@ -150,6 +150,20 @@ function estimateBaseline({ tokens, modeRatio, pricing, injectionOverhead = 0 })
   const estimatedBaselineOutput = Math.round((actual.output || 0) / (1 - modeRatio));
   const estimatedSavedOutput = Math.max(0, estimatedBaselineOutput - (actual.output || 0));
   const estimatedNetSaved = Math.max(0, estimatedSavedOutput - injectionOverhead);
+
+  // Token estimates stand on their own — an unknown model id (Bedrock/Vertex
+  // prefixes, future models) must not zero them; only the USD lines go null.
+  if (!pricing) {
+    return {
+      estimatedBaselineOutput,
+      estimatedSavedOutput,
+      estimatedNetSaved,
+      actualCostUsd: null,
+      baselineCostUsd: null,
+      savedCostUsd: null,
+    };
+  }
+
   const actualCostUsd = costForUsage(actual, pricing);
   const baselineCostUsd = costForUsage(
     { ...actual, output: estimatedBaselineOutput, input: (actual.input || 0) + injectionOverhead },

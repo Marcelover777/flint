@@ -39,6 +39,7 @@ const HOOK_FILES = [
   'flint-activate.js',
   'flint-mode-tracker.js',
   'flint-stats.js',
+  'flint-session-end.js',
   'flint-statusline.sh',
   'flint-statusline.ps1',
 ];
@@ -647,13 +648,21 @@ function installOpencode(ctx) {
     }
     if (opts.withMcpShrink) {
       if (!cfg.mcp || typeof cfg.mcp !== 'object') cfg.mcp = {};
-      if (!cfg.mcp['flint-shrink']) {
+      // Register from the local clone (guaranteed above): index.js requires
+      // ../../core/* relative modules so it only runs in-repo, and the
+      // post-rename npm name is unpublished — `npx -y flint-shrink` would 404
+      // today and the unclaimed name is an `npx -y` supply-chain squat vector.
+      // Also refresh a stale npx-shaped entry from earlier installs.
+      const localShrink = path.join(repoRoot, 'src', 'mcp-servers', 'flint-shrink', 'index.js');
+      const existing = cfg.mcp['flint-shrink'];
+      const isStaleNpx = existing && Array.isArray(existing.command) && existing.command.includes('npx');
+      if (!existing || isStaleNpx) {
         cfg.mcp['flint-shrink'] = {
           type: 'local',
-          command: ['npx', '-y', MCP_SHRINK_PKG],
+          command: [absoluteNodePath(), localShrink],
           enabled: true,
         };
-        process.stdout.write('  registered flint-shrink MCP server\n');
+        process.stdout.write(`  registered flint-shrink MCP server (local: ${localShrink})\n`);
       }
     }
     SETTINGS.writeSettings(opencodeJson, cfg);
@@ -766,6 +775,15 @@ async function installHooks(ctx) {
     statusMessage: 'Tracking flint mode...',
   });
 
+  // SessionEnd recorder — keeps lifetime stats + the ⚡ statusline suffix
+  // current without the user running /flint-stats. Injects nothing.
+  SETTINGS.addCommandHook(settings, 'SessionEnd', {
+    command: `"${node}" "${path.join(hooksDir, 'flint-session-end.js')}"`,
+    marker: 'flint-session-end',
+    timeout: 10,
+    statusMessage: 'Recording flint stats...',
+  });
+
   // Statusline — set if absent or already pointing at our script.
   // Windows: prefer pwsh (PowerShell 7+, cross-platform), fall back to
   // powershell.exe (Windows PowerShell 5.1, ships with every Windows install).
@@ -799,20 +817,33 @@ async function installHooks(ctx) {
 
 // ── MCP shrink wiring ─────────────────────────────────────────────────────
 function installMcpShrink(ctx) {
-  const { note, warn, opts } = ctx;
-  // Probe npm first — registry outage = clean skip with manual snippet.
-  const probe = captureSpawn('npm', ['view', MCP_SHRINK_PKG, 'name']);
-  if (probe.status !== 0) {
-    warn(`    'npm view ${MCP_SHRINK_PKG}' returned no metadata — registry unreachable or package missing.`);
-    note('    Skipping registration. Re-run --with-mcp-shrink when the registry is reachable.');
-    return { kind: 'skip', why: 'npm registry probe failed' };
-  }
+  const { note, warn, opts, repoRoot } = ctx;
   // Detect modern `claude mcp add`
   const help = captureSpawn('claude', ['mcp', '--help']);
   if (help.status !== 0) {
     note("    'claude mcp add' not available on this CLI. Add the snippet from");
     note('    src/hooks/README.md to your Claude Code MCP config manually.');
     return { kind: 'skip', why: 'manual config required' };
+  }
+  // Prefer the local clone: the server's relative requires only resolve
+  // in-repo, and the npm name is unpublished post-rename (a squat vector for
+  // `npx -y` besides). npm is only a fallback for curl-pipe installs.
+  const localServer = repoRoot && path.join(repoRoot, 'src', 'mcp-servers', 'flint-shrink', 'index.js');
+  if (localServer && fs.existsSync(localServer)) {
+    const r = runSpawn('claude', ['mcp', 'add', 'flint-shrink', '--', absoluteNodePath(), localServer], null, opts.dryRun);
+    if ((r.status || 0) === 0) {
+      note('    registered from local clone. Wrap an upstream by editing the mcpServers entry — see:');
+      note(`    https://github.com/${REPO}/tree/main/src/mcp-servers/flint-shrink`);
+      return { kind: 'ok' };
+    }
+    return { kind: 'fail', why: 'claude mcp add failed' };
+  }
+  // No clone: probe npm — registry outage or unpublished package = clean skip.
+  const probe = captureSpawn('npm', ['view', MCP_SHRINK_PKG, 'name']);
+  if (probe.status !== 0) {
+    warn(`    'npm view ${MCP_SHRINK_PKG}' returned no metadata — package not published or registry unreachable.`);
+    note('    Skipping registration. Clone the repo and re-run --with-mcp-shrink to register the local server.');
+    return { kind: 'skip', why: 'npm registry probe failed' };
   }
   const r = runSpawn('claude', ['mcp', 'add', 'flint-shrink', '--', 'npx', '-y', MCP_SHRINK_PKG], null, opts.dryRun);
   if ((r.status || 0) === 0) {
@@ -930,6 +961,14 @@ function uninstall(ctx) {
     if (mcpHelp.status === 0) {
       runSpawn('claude', ['mcp', 'remove', 'flint-shrink'], null, opts.dryRun);
     }
+
+    // Marketplace registration — added by the install, must go too (after the
+    // plugin uninstall above, which depends on it).
+    const mkt = captureSpawn('claude', ['plugin', 'marketplace', 'list']);
+    if (mkt.status === 0 && /flint/i.test(mkt.stdout || '')) {
+      const r = runSpawn('claude', ['plugin', 'marketplace', 'remove', 'flint'], null, opts.dryRun);
+      if ((r.status || 0) === 0) ok('  removed claude marketplace registration');
+    }
   }
 
   // Gemini extension. Same idempotency probe as claude.
@@ -1029,9 +1068,21 @@ function uninstall(ctx) {
     if (r.touched) ok('  pruned flint entries from OpenClaw workspace');
   }
 
-  // Flag file
+  // Flag file + runtime state written by the hooks/stats (history log,
+  // statusline suffix, nudge marker, per-session prompt state).
   const flag = path.join(configDir, '.flint-active');
   if (fs.existsSync(flag) && !opts.dryRun) { try { fs.unlinkSync(flag); } catch (_) {} }
+  for (const leftover of ['.flint-history.jsonl', '.flint-statusline-suffix', '.flint-statusline-nudged']) {
+    const p = path.join(configDir, leftover);
+    if (fs.existsSync(p) && !opts.dryRun) { try { fs.unlinkSync(p); } catch (_) {} }
+  }
+  try {
+    for (const entry of fs.readdirSync(configDir)) {
+      if (/^\.flint-prompt-state-.*\.json$/.test(entry) && !opts.dryRun) {
+        try { fs.unlinkSync(path.join(configDir, entry)); } catch (_) {}
+      }
+    }
+  } catch (_) {}
 
   process.stdout.write('\n');
   ok('uninstall done.');

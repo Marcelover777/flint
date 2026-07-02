@@ -35,29 +35,48 @@ function rmrf(p) {
   fs.rmSync(p, { recursive: true, force: true });
 }
 
+// Missing file → fallback. Present-but-unparseable → hard abort: silently
+// treating a corrupt settings.json as {} would let the write below destroy
+// the user's permissions/hooks/model config.
 function readJson(file, fallback) {
-  try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return fallback; }
+  let raw;
+  try { raw = fs.readFileSync(file, 'utf8'); } catch { return fallback; }
+  try { return JSON.parse(raw); } catch (e) {
+    process.stderr.write(`flint install: ${file} exists but is not valid JSON (${e.message}).\n` +
+      'Refusing to touch it — fix or remove the file and re-run.\n');
+    process.exit(3);
+  }
 }
 
+// Only the hook entries THIS installer writes count as ours: the command must
+// point into .claude/flint/hooks/. A user's unrelated hook whose path merely
+// contains "flint-" must never be filtered out on reinstall/uninstall.
+const MANAGED_SCRIPTS = ['flint-activate.js', 'flint-mode-tracker.js', 'flint-session-end.js'];
 function isFlintHook(entry) {
-  return JSON.stringify(entry).includes('flint-');
+  const commands = ((entry && entry.hooks) || []).map(h => String((h && h.command) || ''));
+  return commands.some(c =>
+    MANAGED_SCRIPTS.some(s => c.includes(s)) &&
+    (c.includes(`flint${path.sep}hooks`) || c.includes('flint/hooks')));
 }
 
-function hookEntry(script, statusMessage) {
+// Absolute node path: Claude Code hook commands don't always inherit a PATH
+// that resolves bare `node` (launcher/GUI starts).
+function hookEntry(script, statusMessage, timeout = 5) {
   const abs = path.join(dotClaude, 'flint', 'hooks', script);
-  return { hooks: [{ type: 'command', command: `node "${abs}"`, timeout: 5, statusMessage }] };
+  return { hooks: [{ type: 'command', command: `"${process.execPath}" "${abs}"`, timeout, statusMessage }] };
 }
 
 function mergeSettings() {
   const file = path.join(dotClaude, 'settings.json');
   const settings = readJson(file, {});
   settings.hooks = settings.hooks || {};
-  for (const [event, script, msg] of [
-    ['SessionStart', 'flint-activate.js', 'Loading flint mode...'],
-    ['UserPromptSubmit', 'flint-mode-tracker.js', 'Tracking flint mode...'],
+  for (const [event, script, msg, timeout] of [
+    ['SessionStart', 'flint-activate.js', 'Loading flint mode...', 5],
+    ['UserPromptSubmit', 'flint-mode-tracker.js', 'Tracking flint mode...', 5],
+    ['SessionEnd', 'flint-session-end.js', 'Recording flint stats...', 10],
   ]) {
     const list = (settings.hooks[event] || []).filter(e => !isFlintHook(e));
-    list.push(hookEntry(script, msg));
+    list.push(hookEntry(script, msg, timeout));
     settings.hooks[event] = list;
   }
   if (!settings.statusLine) {

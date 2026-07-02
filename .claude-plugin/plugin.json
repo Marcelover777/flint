@@ -1,6 +1,6 @@
 {
   "name": "flint",
-  "description": "Ultra-compressed communication mode. Cuts ~75% of tokens while keeping full technical accuracy by speaking like a flint.",
+  "description": "Token-economy output mode for Claude Code. Cuts 60-80% of output tokens with terse, answer-first replies while keeping full technical accuracy.",
   "author": {
     "name": "Marcelover777",
     "url": "https://github.com/Marcelover777"
@@ -26,6 +26,18 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/src/hooks/flint-mode-tracker.js\"",
             "timeout": 5,
             "statusMessage": "Tracking flint mode..."
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/src/hooks/flint-session-end.js\"",
+            "timeout": 10,
+            "statusMessage": "Recording flint stats..."
           }
         ]
       }

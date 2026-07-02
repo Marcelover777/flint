@@ -31,7 +31,7 @@ function test(name, fn) {
 console.log('flint-init tests\n');
 
 test('greenfield: creates all rule files with proper frontmatter', (tmp) => {
-  execFileSync(process.execPath, [INIT, tmp], { encoding: 'utf8' });
+  execFileSync(process.execPath, [INIT, tmp], { encoding: 'utf8', env: { ...process.env, OPENCLAW_WORKSPACE: path.join(tmp, 'no-openclaw-here') } });
   const cursor = fs.readFileSync(path.join(tmp, '.cursor/rules/flint.mdc'), 'utf8');
   assert.match(cursor, /alwaysApply: true/);
   assert.match(cursor, /Respond terse like smart flint/);
@@ -46,15 +46,15 @@ test('greenfield: creates all rule files with proper frontmatter', (tmp) => {
 });
 
 test('idempotent: re-running on a clean install skips all', (tmp) => {
-  execFileSync(process.execPath, [INIT, tmp], { encoding: 'utf8' });
-  const out = execFileSync(process.execPath, [INIT, tmp], { encoding: 'utf8' });
-  assert.match(out, /5 skipped/);
+  execFileSync(process.execPath, [INIT, tmp], { encoding: 'utf8', env: { ...process.env, OPENCLAW_WORKSPACE: path.join(tmp, 'no-openclaw-here') } });
+  const out = execFileSync(process.execPath, [INIT, tmp], { encoding: 'utf8', env: { ...process.env, OPENCLAW_WORKSPACE: path.join(tmp, 'no-openclaw-here') } });
+  assert.match(out, /7 skipped/);
   assert.doesNotMatch(out, /[1-9]\d* added/);
 });
 
 test('append mode: existing AGENTS.md gets flint appended (not replaced)', (tmp) => {
   fs.writeFileSync(path.join(tmp, 'AGENTS.md'), '# My project\n\nDo not delete me.\n');
-  execFileSync(process.execPath, [INIT, tmp], { encoding: 'utf8' });
+  execFileSync(process.execPath, [INIT, tmp], { encoding: 'utf8', env: { ...process.env, OPENCLAW_WORKSPACE: path.join(tmp, 'no-openclaw-here') } });
   const agents = fs.readFileSync(path.join(tmp, 'AGENTS.md'), 'utf8');
   assert.match(agents, /Do not delete me/);
   assert.match(agents, /Respond terse like smart flint/);
@@ -64,7 +64,7 @@ test('skip mode: existing .cursor rule is not overwritten without --force', (tmp
   const dir = path.join(tmp, '.cursor/rules');
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, 'flint.mdc'), '# original\nDo not delete me.\n');
-  const out = execFileSync(process.execPath, [INIT, tmp], { encoding: 'utf8' });
+  const out = execFileSync(process.execPath, [INIT, tmp], { encoding: 'utf8', env: { ...process.env, OPENCLAW_WORKSPACE: path.join(tmp, 'no-openclaw-here') } });
   assert.match(out, /\? .*\.cursor\/rules\/flint\.mdc/);
   const after = fs.readFileSync(path.join(dir, 'flint.mdc'), 'utf8');
   assert.strictEqual(after, '# original\nDo not delete me.\n');
@@ -74,16 +74,16 @@ test('--force overwrites existing rule files', (tmp) => {
   const dir = path.join(tmp, '.cursor/rules');
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, 'flint.mdc'), '# original\n');
-  execFileSync(process.execPath, [INIT, tmp, '--force'], { encoding: 'utf8' });
+  execFileSync(process.execPath, [INIT, tmp, '--force'], { encoding: 'utf8', env: { ...process.env, OPENCLAW_WORKSPACE: path.join(tmp, 'no-openclaw-here') } });
   const after = fs.readFileSync(path.join(dir, 'flint.mdc'), 'utf8');
   assert.match(after, /alwaysApply: true/);
   assert.match(after, /Respond terse/);
 });
 
 test('--dry-run: announces but writes nothing', (tmp) => {
-  const out = execFileSync(process.execPath, [INIT, tmp, '--dry-run'], { encoding: 'utf8' });
+  const out = execFileSync(process.execPath, [INIT, tmp, '--dry-run'], { encoding: 'utf8', env: { ...process.env, OPENCLAW_WORKSPACE: path.join(tmp, 'no-openclaw-here') } });
   assert.match(out, /\(dry run\)/);
-  assert.match(out, /5 added/);
+  assert.match(out, /6 added/);
   assert.ok(!fs.existsSync(path.join(tmp, '.cursor')));
   assert.ok(!fs.existsSync(path.join(tmp, '.windsurf')));
   assert.ok(!fs.existsSync(path.join(tmp, '.clinerules')));
@@ -92,7 +92,7 @@ test('--dry-run: announces but writes nothing', (tmp) => {
 });
 
 test('--only filters to one target', (tmp) => {
-  const out = execFileSync(process.execPath, [INIT, tmp, '--only', 'cline'], { encoding: 'utf8' });
+  const out = execFileSync(process.execPath, [INIT, tmp, '--only', 'cline'], { encoding: 'utf8', env: { ...process.env, OPENCLAW_WORKSPACE: path.join(tmp, 'no-openclaw-here') } });
   assert.match(out, /1 added/);
   assert.ok(fs.existsSync(path.join(tmp, '.clinerules/flint.md')));
   assert.ok(!fs.existsSync(path.join(tmp, '.cursor')));
@@ -104,7 +104,7 @@ test('detects sentinel and skips files that already have flint content', (tmp) =
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, 'flint.md'),
     '# Existing\n\nRespond terse like smart flint. Hello.\n');
-  const out = execFileSync(process.execPath, [INIT, tmp, '--only', 'cline'], { encoding: 'utf8' });
+  const out = execFileSync(process.execPath, [INIT, tmp, '--only', 'cline'], { encoding: 'utf8', env: { ...process.env, OPENCLAW_WORKSPACE: path.join(tmp, 'no-openclaw-here') } });
   assert.match(out, /skipped-already-installed/);
 });
 

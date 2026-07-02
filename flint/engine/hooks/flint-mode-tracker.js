@@ -27,8 +27,8 @@ function parseModeCommand(prompt) {
   const parts = prompt.split(/\s+/);
   const cmd = parts[0];
   const arg = parts[1] || '';
-  if (cmd === '/flint-commit') return 'commit';
-  if (cmd === '/flint-review') return 'review';
+  if (cmd === '/flint-commit' || cmd === '/flint:flint-commit') return 'commit';
+  if (cmd === '/flint-review' || cmd === '/flint:flint-review') return 'review';
   if (cmd === '/flint-compress' || cmd === '/flint:flint-compress') return 'compress';
   if (cmd === '/flint' || cmd === '/flint:flint') {
     if (!arg) return getDefaultMode();
@@ -63,11 +63,14 @@ process.stdin.on('end', () => {
     }
 
     // Natural-language activation, EN + PT-BR ("liga o flint", "ativa flint",
-    // "modo flint").
-    if (/\b(activate|enable|turn on|start|talk like|ativa[r]?|liga[r]?|usa[r]?)\b.*\bflint\b/i.test(rawPrompt) ||
-        /\bflint\b.*\b(mode|activate|enable|turn on|start)\b/i.test(rawPrompt) ||
+    // "modo flint"). `flint\b(?!-)` keeps filenames like "flint-stats.js"
+    // from counting as the product name; bare "para" is the PT preposition
+    // ("docs para o flint") and must NOT toggle anything — only imperative
+    // forms (parar/pare/para de) count.
+    if (/\b(activate|enable|turn on|start|talk like|ativa[r]?|liga[r]?|usa[r]?)\b.*\bflint\b(?!-)/i.test(rawPrompt) ||
+        /\bflint\b(?!-).*\b(mode|activate|enable|turn on|start)\b/i.test(rawPrompt) ||
         /\bmodo flint\b/i.test(rawPrompt)) {
-      if (!/\b(stop|disable|turn off|deactivate|desativa[r]?|desliga[r]?|para[r]?)\b/i.test(rawPrompt)) {
+      if (!/\b(stop|disable|turn off|deactivate|desativa[r]?|desliga[r]?|parar|pare|para de)\b/i.test(rawPrompt)) {
         const mode = getDefaultMode();
         if (mode !== 'off') safeWriteFlag(flagPath, mode);
       }
@@ -80,9 +83,9 @@ process.stdin.on('end', () => {
       try { fs.unlinkSync(flagPath); } catch (_) {}
     }
 
-    // Deactivation, EN + PT-BR ("desliga o flint", "para o flint", "modo normal").
-    if (/\b(stop|disable|deactivate|turn off|desativa[r]?|desliga[r]?|para[r]?)\b.*\bflint\b/i.test(rawPrompt) ||
-        /\bflint\b.*\b(stop|disable|deactivate|turn off)\b/i.test(rawPrompt) ||
+    // Deactivation, EN + PT-BR ("desliga o flint", "pare o flint", "modo normal").
+    if (/\b(stop|disable|deactivate|turn off|desativa[r]?|desliga[r]?|parar|pare|para de)\b.*\bflint\b(?!-)/i.test(rawPrompt) ||
+        /\bflint\b(?!-).*\b(stop|disable|deactivate|turn off)\b/i.test(rawPrompt) ||
         /\b(normal mode|modo normal)\b/i.test(rawPrompt)) {
       try { fs.unlinkSync(flagPath); } catch (_) {}
     }
