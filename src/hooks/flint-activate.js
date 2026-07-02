@@ -86,34 +86,11 @@ function readFullSkill(label) {
   return 'FLINT MODE ACTIVE - level: ' + label + '\n\n' + filtered.join('\n');
 }
 
-let output = config.injection.sessionStart === 'full'
+// No statusline nudge here: the installer wires the statusline at install
+// time and /flint-doctor --fix-statusline covers the rest. Injecting setup
+// prose into every fresh session cost ~90 tokens for zero behavior.
+const output = config.injection.sessionStart === 'full'
   ? readFullSkill(modeLabel)
   : readMicroRules(modeLabel);
-
-try {
-  let hasStatusline = false;
-  if (fs.existsSync(settingsPath)) {
-    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-    hasStatusline = !!settings.statusLine;
-  }
-
-  const nudgeMode = config.injection.statuslineNudge || 'once';
-  const markerPath = path.join(claudeDir, '.flint-statusline-nudged');
-  const alreadyNudged = nudgeMode === 'once' && fs.existsSync(markerPath);
-  if (!hasStatusline && nudgeMode !== 'off' && !alreadyNudged) {
-    const isWindows = process.platform === 'win32';
-    const scriptName = isWindows ? 'flint-statusline.ps1' : 'flint-statusline.sh';
-    const scriptPath = path.join(__dirname, scriptName);
-    const command = isWindows
-      ? `powershell -ExecutionPolicy Bypass -File "${scriptPath}"`
-      : `bash "${scriptPath}"`;
-    const statusLineSnippet = '"statusLine": { "type": "command", "command": ' + JSON.stringify(command) + ' }';
-    output += '\n\nSTATUSLINE SETUP NEEDED: Flint badge is not configured. Add this to Claude Code settings.json: ' +
-      statusLineSnippet + ' Or run /flint-doctor --fix-statusline.';
-    if (nudgeMode === 'once') safeWriteFlag(markerPath, 'shown');
-  }
-} catch (_) {
-  // Silent fail - do not block session start.
-}
 
 process.stdout.write(output);

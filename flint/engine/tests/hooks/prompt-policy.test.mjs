@@ -6,8 +6,10 @@ const require = createRequire(import.meta.url);
 const { shouldReinforce, scoreDrift } = require('../../hooks/prompt-policy.js');
 const config = { injection: { reinforcement: 'adaptive', reinforceFirstNTurns: 2, reinforceEveryNTurns: 6, afterLongOutputTokens: 2500 } };
 
-test('reinforces first two turns then backs off', () => {
-  assert.equal(shouldReinforce({ prompt: 'hi', activeMode: 'full', config, state: {}, transcript: {} }).reinforce, true);
+test('skips turn 1 (SessionStart already injected), reinforces turns 2-3, then backs off', () => {
+  assert.equal(shouldReinforce({ prompt: 'hi', activeMode: 'full', config, state: {}, transcript: {} }).reinforce, false);
+  assert.equal(shouldReinforce({ prompt: 'hi', activeMode: 'full', config, state: { turn: 1 }, transcript: {} }).reinforce, true);
+  assert.equal(shouldReinforce({ prompt: 'hi', activeMode: 'full', config, state: { turn: 2 }, transcript: {} }).reinforce, true);
   assert.equal(shouldReinforce({ prompt: 'hi', activeMode: 'full', config, state: { turn: 5, last_reinforced_turn: 2 }, transcript: {} }).reinforce, false);
   assert.equal(shouldReinforce({ prompt: 'hi', activeMode: 'full', config, state: { turn: 8, last_reinforced_turn: 2 }, transcript: {} }).reinforce, true);
 });

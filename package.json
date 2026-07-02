@@ -20,8 +20,9 @@
   },
   "scripts": {
     "test": "node --test tests/installer/*.test.mjs",
-    "test:optimizer": "node --test tests/core/*.test.mjs tests/hooks/*.test.mjs tests/mcp/*.test.mjs tests/commands/*.test.mjs",
-    "test:all": "node --test tests/installer/*.test.mjs tests/core/*.test.mjs tests/hooks/*.test.mjs tests/mcp/*.test.mjs tests/commands/*.test.mjs"
+    "test:optimizer": "node --test tests/core/*.test.mjs tests/hooks/*.test.mjs tests/mcp/*.test.mjs tests/commands/*.test.mjs flint/engine/tests/core/*.test.mjs flint/engine/tests/hooks/*.test.mjs flint/engine/tests/commands/*.test.mjs",
+    "test:all": "node --test tests/installer/*.test.mjs tests/core/*.test.mjs tests/hooks/*.test.mjs tests/mcp/*.test.mjs tests/commands/*.test.mjs flint/engine/tests/core/*.test.mjs flint/engine/tests/hooks/*.test.mjs flint/engine/tests/commands/*.test.mjs && npm run test:legacy",
+    "test:legacy": "node tests/test_flint_init.js && node tests/test_flint_stats.js && node tests/test_mcp_shrink.js && node tests/test_symlink_flag.js"
   },
   "files": [
     "bin/",

@@ -126,6 +126,15 @@ function processOpenclaw(opts) {
       detail: '~/.openclaw/workspace (helper unavailable in standalone curl|node mode — use `npx -y github:Marcelover777/flint -- --only openclaw`)',
     };
   }
+  // Only touch OpenClaw when the workspace already exists — its presence is
+  // the signal the user actually runs OpenClaw. flint-init must never create
+  // ~/.openclaw/workspace on machines that never installed it.
+  const wsPath = process.env.OPENCLAW_WORKSPACE
+    ? path.resolve(process.env.OPENCLAW_WORKSPACE)
+    : (helper.resolveWorkspace ? helper.resolveWorkspace() : null);
+  if (!wsPath || !fs.existsSync(wsPath)) {
+    return { status: 'skipped-no-openclaw', label: '=', detail: (wsPath || '~/.openclaw/workspace') + ' (not present)' };
+  }
   const repoRoot = path.resolve(__dirname, '..', '..');
   const log = {
     write: (_) => {},

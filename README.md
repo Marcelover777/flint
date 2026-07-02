@@ -33,10 +33,10 @@
 A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill/plugin (also Codex, Gemini, Cursor, Windsurf, Cline, Copilot, 30+ more) that makes the agent talk like a flint — cuts **~77% of output tokens**, keeps full technical accuracy. Brain still big. Mouth small.
 
 > [!NOTE]
-> **Forked from [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) (MIT), fully rebranded as flint.** This repo keeps the complete product and adds a **model-aware token-cost optimizer**, now targeting **Claude Fable 5** (`claude-fable-5`, Anthropic's current Mythos-class model at $10/$50 per MTok — an earlier note here claiming Fable 5 was retired was wrong; at 2x Opus output pricing every saved token is worth double). On a **real, budgeted Opus 4.8 benchmark** it cut **76.7% of output tokens** (mean; p50 79.3%) with **zero fidelity failures**, plus **15–51% of re-sent doc/context** — surfaces flint doesn't touch at all. It adds safe doc compression, MCP metadata shrink, adaptive injection, and a budget-guarded USD benchmark. **→ [docs/OPTIMIZER.md](./docs/OPTIMIZER.md)** explains how it works. Upstream attribution in [NOTICE](./NOTICE).
+> **Forked from [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) (MIT), fully rebranded as flint.** This repo keeps the complete product and adds a **model-aware token-cost optimizer**, now targeting **Claude Fable 5** (`claude-fable-5`, Anthropic's current Mythos-class model at $10/$50 per MTok — an earlier note here claiming Fable 5 was retired was wrong; at 2x Opus output pricing every saved token is worth double). On a **real, budgeted Opus 4.8 benchmark** it cut **76.7% of output tokens** (mean; p50 79.3%) with **zero fidelity failures**, plus **15–51% of re-sent doc/context** — a surface the voice skill alone never touches. It adds safe doc compression, MCP metadata shrink, adaptive injection, and a budget-guarded USD benchmark. **→ [docs/OPTIMIZER.md](./docs/OPTIMIZER.md)** explains how it works. Upstream attribution in [NOTICE](./NOTICE).
 
 > [!TIP]
-> **New: [Flint 2](./flint/) — standalone, project-local, Fable 5-native.** Fully detached from the flint install layout: one `node flint/install.mjs <project>` drops engine + skills + compact subagents into that project's `.claude/`, auto-activates every session, and adds **agent-loop rules** (final-message cap, ≤1 line between tool calls, never re-print code/diffs) — the surfaces where agentic sessions actually burn output. Extended local compressor (EN + PT-BR): **14.4%** prose-heavy EN / **9.9%** PT-BR / **10.8%** mixed, local-only, zero network, validation-gated. 48/48 tests. **→ [flint/README.md](./flint/README.md)**
+> **New: [Flint 2](./flint/) — standalone, project-local, Fable 5-native.** Fully detached from the classic multi-agent install layout: one `node flint/install.mjs <project>` drops engine + skills + compact subagents into that project's `.claude/`, auto-activates every session, and adds **agent-loop rules** (final-message cap, ≤1 line between tool calls, never re-print code/diffs) — the surfaces where agentic sessions actually burn output. Extended local compressor (EN + PT-BR): **13.5%** prose-heavy EN / **10.0%** PT-BR / **10.0%** mixed, local-only, zero network, validation-gated. 48/48 tests. **→ [flint/README.md](./flint/README.md)**
 
 ## Before / After
 
@@ -113,7 +113,7 @@ irm https://raw.githubusercontent.com/Marcelover777/flint/main/install.ps1 | iex
 
 Every reply now terse, full accuracy. Stop with `normal mode`. Grunt levels: `/flint lite | full | ultra | wenyan`.
 
-**3. See the money** — real tokens + USD for Opus 4.8:
+**3. See the money** — real tokens + USD, priced for the model in your session log (Fable 5 default):
 
 ```
 /flint-stats --json
@@ -164,12 +164,12 @@ Install break? Open agent, say *"Read CLAUDE.md and INSTALL.md, install flint fo
 | `/flint-compress <file>` | Local-first safe memory compression. Code/URLs/paths byte-preserved. LLM compression opt-in via `--llm` (default `claude-sonnet-4-6`). |
 | `/flint-doctor` | Checks hooks, config, statusline, MCP shrink, pricing, secret scanner, token-count readiness. |
 | `/flint-bench` | Offline eval/bench report; budgeted Opus 4.8 online path when API key exists. |
-| `flint-shrink` | MCP middleware. Wraps any MCP server, compresses list descriptions with Content-Length support. [npm](https://www.npmjs.com/package/flint-shrink). |
+| `flint-shrink` | MCP middleware. Wraps any MCP server, compresses list descriptions with Content-Length support. Registered from the local clone by the installer ([src/mcp-servers/flint-shrink](./src/mcp-servers/flint-shrink/)). |
 | `flint-crew-*` | Compact subagents (investigator/builder/reviewer). File/line evidence stays, main context lasts longer. |
 
 **Statusline badge** — Claude Code shows `[FLINT] ⚡ 12.4k` (lifetime tokens saved). Updates every `/flint-stats` run. Set `FLINT_STATUSLINE_SAVINGS=0` to silence.
 
-Auto-activate every session: Claude Code, Codex, Gemini (built-in). Cursor / Windsurf / Cline / Copilot get always-on rule files via `--with-init`. Other agents trigger with `/flint` per session. Full feature matrix in [INSTALL.md](./INSTALL.md).
+Auto-activate every session: Claude Code and Gemini (built-in). Cursor / Windsurf / Cline / Copilot get always-on rule files via `--with-init`. Codex and other agents trigger with `/flint` per session. Full feature matrix in [INSTALL.md](./INSTALL.md).
 
 ## Benchmarks
 

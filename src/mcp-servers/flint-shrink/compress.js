@@ -8,9 +8,12 @@ try {
   core = null;
 }
 
-const FILLERS = /\b(?:just|really|basically|actually|simply|quite|very|essentially|literally|generally)\b\s*/gi;
+const FILLERS = /(?<!-)\b(?:just|really|basically|actually|simply|quite|very|essentially|literally)\b(?!-)\s*/gi;
 const PLEASANTRIES = /\b(?:please|kindly|thank you|thanks|sure|certainly|of course|happy to|i'?d be happy)\b[,.]?\s*/gi;
-const HEDGES = /\b(?:perhaps|maybe|might|could potentially|would like to|i think|in my opinion|it seems|it appears)\b\s*/gi;
+// Modal/perception hedges (perhaps/maybe/might/it seems) are PRESERVED —
+// in a tool description "might block" vs "blocks" is semantics, not filler.
+// Mirrors the core compressor's policy.
+const HEDGES = /\b(?:could potentially|would like to|i think|in my opinion)\b\s*/gi;
 const LEADERS = /^(?:i'?ll|i will|i can|i'?d|you can|we will|we can|let me|let'?s)\s+/gim;
 const ARTICLES = /\b(?:a|an|the)\s+(?=[a-z])/gi;
 const PROTECTED_PATTERNS = [

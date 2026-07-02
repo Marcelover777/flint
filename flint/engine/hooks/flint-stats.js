@@ -82,6 +82,19 @@ function loadCompressionRatios() {
 }
 const COMPRESSION = loadCompressionRatios();
 
+// Injected-prompt overhead for the active mode: the SessionStart MICRO line,
+// estimated at chars/4 (same estimator the bench uses). Best-effort — 0 when
+// the skill file is missing or the mode is off/independent.
+function injectionOverheadTokens(mode) {
+  if (!mode || mode === 'off') return 0;
+  try {
+    const micro = fs.readFileSync(path.join(__dirname, '..', '..', 'skills', 'flint', 'MICRO.md'), 'utf8');
+    const hit = micro.split('\n').map(s => s.trim()).find(l => l.startsWith('FLINT ' + mode + '.'));
+    if (hit) return Math.round(hit.length / 4);
+  } catch (_) {}
+  return 0;
+}
+
 function priceForModel(model) {
   return pricingCore.outputPriceForModel(model);
 }
@@ -97,7 +110,7 @@ function findRecentSession(claudeDir) {
   catch { return null; }
 
   let best = null;
-  const slug = process.cwd().replace(/[\/:]/g, '-').replace(/^-+/, ''); const scoped = path.join(projectsDir, slug); let roots = []; try { if (fs.statSync(scoped).isDirectory()) roots.push(scoped); } catch {} if (!roots.length) roots = entries.map(e => path.join(projectsDir, e.name)); const stack = [...roots];
+  const slug = process.cwd().replace(/[\\/:.]/g, '-'); const scoped = path.join(projectsDir, slug); let roots = []; try { if (fs.statSync(scoped).isDirectory()) roots.push(scoped); } catch {} if (!roots.length) roots = entries.map(e => path.join(projectsDir, e.name)); const stack = [...roots];
   while (stack.length) {
     const p = stack.pop();
     let st;
@@ -349,7 +362,8 @@ function formatStats({ inputTokens = 0, outputTokens, cacheReadTokens = 0, cache
 }
 
 function jsonPayload({ parsed, mode, sessionFile, compressed }) {
-  const s = savingsModel({ ...parsed, mode });
+  const injectionOverhead = injectionOverheadTokens(mode);
+  const s = savingsModel({ ...parsed, mode, injectionOverhead });
   return {
     schema_version: 2,
     model: parsed.model || null,
@@ -361,7 +375,7 @@ function jsonPayload({ parsed, mode, sessionFile, compressed }) {
       output: parsed.outputTokens,
       cache_read: parsed.cacheReadTokens,
       cache_write: parsed.cacheCreationTokens,
-      injection_overhead: 0,
+      injection_overhead: injectionOverhead,
       estimated_baseline_output: s.estimatedBaselineOutput || 0,
       estimated_saved_output: s.estimatedSavedOutput || 0,
       estimated_net_saved: s.estimatedNetSaved || 0,
@@ -407,6 +421,9 @@ function main() {
   const share = args.includes('--share');
   const all = args.includes('--all');
   const json = args.includes('--json');
+  // --record: append history + refresh the statusline suffix, print nothing.
+  // Used by the SessionEnd hook so lifetime stats track without manual /flint-stats.
+  const record = args.includes('--record');
   const sinceIdx = args.indexOf('--since');
   const sinceArg = sinceIdx !== -1 ? args[sinceIdx + 1] : null;
 
@@ -448,6 +465,8 @@ function main() {
     const suffix = agg.estSavedTokens > 0 ? `⚡ ${humanizeTokens(agg.estSavedTokens)}` : '';
     safeWriteFlag(path.join(stateDir, '.flint-statusline-suffix'), suffix);
   }
+
+  if (record) return;
 
   if (json) {
     process.stdout.write(JSON.stringify(jsonPayload({ parsed, mode, sessionFile, compressed }), null, 2) + '\n');

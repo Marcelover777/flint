@@ -8,10 +8,11 @@ model-aware, safety-checked tool for cutting the real dollar cost of agent
 sessions on **Claude Opus 4.8** (and any other Claude model, via prefix-matched
 pricing).
 
-> **Fable 5 was retired by Anthropic** — the API now answers `claude-fable-5`
-> with *"not available, please use Opus 4.8."* The optimizer's defaults target
-> **Opus 4.8** accordingly. Everything below is measured on Opus 4.8; older Fable
-> numbers are kept only as a historical footnote.
+> **Default target: Claude Fable 5** (`claude-fable-5`, Anthropic's current
+> Mythos-class model, $10/$50 per MTok — an earlier revision of this doc
+> wrongly claimed it was retired). The benchmark below was run on Opus 4.8;
+> token cuts are model-independent, and at Fable's 2x output pricing every
+> saved token is worth double in USD.
 
 If you just want the product pitch and install, read the [README](../README.md).
 This doc is the engineering view.
@@ -32,10 +33,10 @@ This doc is the engineering view.
   and **~15–51% of re-sent doc context**, with **zero fidelity failures**.
 - That output cut is **vs no-compression Opus**. Against a plain flint-style
   terse line — same prompts, same run — the optimizer still wins **76.7% vs
-  59.4%**. See [Flint vs Flint](#flint-vs-flint).
-- Opus 4.8 output is **$25/M — half the retired Fable 5's $50/M** (verified
-  2026-06-16). Moving off Fable already cut your bill ~2×; the optimizer stacks
-  its percentage reduction on top of that cheaper baseline.
+  59.4%**. See [the voice skill alone vs the full optimizer](#the-voice-skill-alone-vs-the-full-optimizer).
+- Fable 5 output is **$50/M — 2x Opus 4.8's $25/M** (both verified 2026-06-16).
+  The optimizer's percentage cut is model-independent, so on Fable sessions the
+  same cut is worth twice the USD.
 
 ---
 
@@ -179,20 +180,19 @@ bench can never drift apart.
 counts, which is identical on every model. Only the pricing math (surface 4) is
 model-specific, and it resolves your model two ways:
 
-1. **Exact match** in the pricing table — `claude-opus-4-8` (default target),
-   `claude-sonnet-4-6` (default compression backend), `claude-haiku-4-5`, and the
-   retired `claude-fable-5` (kept only so old session logs still price).
+1. **Exact match** in the pricing table — `claude-fable-5` (default target),
+   `claude-opus-4-8`, `claude-sonnet-4-6` (default compression backend), and
+   `claude-haiku-4-5`.
 2. **Longest-prefix match** for everything else — e.g. the 1M-context
    `claude-opus-4-8[1m]` → `claude-opus-4-8`, `claude-3-5-sonnet…` → its family.
 
-The defaults moved to Opus 4.8 because **Fable 5 was retired** — the API returns
-`404 "Claude Fable 5 is not available. Please use Opus 4.8."`. `targetModel`
-defaults to `claude-opus-4-8`; the compression backend (`llmModel`) defaults to
+`targetModel` defaults to `claude-fable-5` (the model Claude Code sessions
+actually run); the compression backend (`llmModel`) defaults to
 `claude-sonnet-4-6` (cheap, capable, and gated by the validator).
 
-### What Opus 4.8 costs vs the retired Fable 5
+### Fable 5 vs Opus 4.8 pricing
 
-| | Opus 4.8 (current) | Fable 5 (retired) |
+| | Opus 4.8 | Fable 5 (default target) |
 |---|--:|--:|
 | Input | $5 / M | $10 / M |
 | Output | $25 / M | $50 / M |
@@ -200,10 +200,9 @@ defaults to `claude-opus-4-8`; the compression backend (`llmModel`) defaults to
 | Cache read | $0.50 / M | $1.00 / M |
 | Pricing provenance | verified `anthropic-pricing-2026-06-16` | verified `anthropic-pricing-2026-06-10` |
 
-Opus 4.8 is **half the price** of the retired Fable 5 on both input and output.
-The forced migration off Fable was itself a ~2× cost cut; the optimizer's value
-is the percentage reduction it adds on top — which is model-independent, so it
-compounds whatever the per-token price happens to be.
+Fable 5 costs 2x Opus 4.8 on every bucket. The optimizer's value is the
+percentage reduction — model-independent — so it compounds whatever the
+per-token price happens to be, and pays off fastest on Fable sessions.
 
 ### One honest caveat
 
@@ -308,29 +307,29 @@ prior Fable report `evals/reports/fable5-2026-06-11-v2-delivery.md`.
 
 ---
 
-## Flint vs Flint
+## The voice skill alone vs the full optimizer
 
-Flint (the upstream project this forks) is excellent at **one** thing: making
-the model *say less*. Flint keeps that and adds three more cost
-surfaces — so it shrinks the whole bill, not just the reply.
+The terse voice skill (inherited from upstream caveman, MIT) is excellent at
+**one** thing: making the model *say less*. The optimizer keeps that and adds
+three more cost surfaces — so it shrinks the whole bill, not just the reply.
 
-| Capability | Flint (upstream) | **Flint (this repo)** |
+| Capability | Voice skill alone (caveman-style) | **Full flint optimizer** |
 |------------|:------------------:|:-------------------------------:|
 | Output token cut | ~65% (output only) | **76.7% on Opus 4.8** (tuned line) |
 | Same-run head-to-head output | 59.4% | **76.7%** (~43% fewer tokens) |
 | Recurring **context/doc** compression | ❌ none | ✅ **15–51%**, validated, reversible |
 | **MCP tool-metadata** shrink | ❌ | ✅ `inputSchema`-safe |
-| Model-aware **USD** pricing (Opus/Sonnet/Haiku) | ❌ | ✅ central table |
+| Model-aware **USD** pricing (Fable/Opus/Sonnet/Haiku) | ❌ | ✅ central table |
 | **Budget-guarded** real-API benchmark | ❌ | ✅ hard $15 cap |
 | Per-section **validation + repair + fallback** | ❌ | ✅ 0 corruption |
 | **Secret-scan** abort before any LLM call | ❌ | ✅ |
 | What it reduces | what the agent *says* | what it *says* **+** context re-sent every turn **+** tool metadata |
 
-The brutal part isn't the output line being tighter (it is). It's that **flint
-leaves your biggest recurring cost — the CLAUDE.md / memory / project docs
-re-sent into context every single turn — completely untouched**, while the Token
-Optimizer compresses it once and proves the dollar savings on the model you
-actually run.
+The brutal part isn't the output line being tighter (it is). It's that a voice
+skill alone **leaves your biggest recurring cost — the CLAUDE.md / memory /
+project docs re-sent into context every single turn — completely untouched**,
+while the optimizer compresses it once and proves the dollar savings on the
+model you actually run.
 
 ---
 

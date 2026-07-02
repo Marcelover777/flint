@@ -1,6 +1,6 @@
 # Windows install fallback
 
-If `irm https://raw.githubusercontent.com/Marcelover777/flint/main/install.ps1 | iex` fails on Windows (issues #249, #199, #72), set up plugin-skill activation by hand. This does **not** install the standalone hooks or the statusline — for those, run the unified Node installer afterwards: `npx -y github:Marcelover777/flint -- --only claude` (or `node bin/install.js --only claude` from a clone).
+If `irm https://raw.githubusercontent.com/Marcelover777/flint/main/install.ps1 | iex` fails on Windows, set up plugin-skill activation by hand. This does **not** install the standalone hooks or the statusline — for those, run the unified Node installer afterwards: `npx -y github:Marcelover777/flint -- --only claude` (or `node bin/install.js --only claude` from a clone).
 
 ```powershell
 $ClaudeDir = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $HOME ".claude" }
@@ -35,7 +35,7 @@ Verify: `Test-Path "$PluginSkillDir\SKILL.md"` should print `True`. Restart Clau
 
 1. Enable symlinks first: `git config --global core.symlinks true` (requires Developer Mode or admin).
 2. Clone repo → Open VS Code → Codex Settings → Plugins → find "Flint" under the local marketplace → Install → Reload Window.
-3. Codex hooks are currently disabled on Windows, so use `$flint` to start the mode manually each session.
+3. Codex hooks are currently disabled on Windows, so type `/flint` to start the mode manually each session.
 
 ## `npx skills` symlink fallback
 
